@@ -15,20 +15,17 @@
 .metadata/
 .recommenders/
 
-# AI Agent - Excluye archivos de IA y agentes (Descomentar)
-#.agents/
-#.opencode/
-#.windsurf/
-#.gemini/
-#.continue/
-#.kiro/
-#.junie/
-#.claude/
-#.claude-plugin/
-.claude/.simplify-ignore-cache/
-.claude/sdd-cache/
+# AI Agent - Excluye configuraciones personales de otros editores y artefactos de runtime
+.windsurf/
+.gemini/
+.continue/
+.kiro/
+.junie/
+.claude/
+.claude-plugin/
 .opencode/plugins/.sdd-state.json
 .opencode/plugins/.sdd-audit.log
+.opencode/plugins/.sdd-cache/
 
 # Sistema - Excluye archivos temporales del sistema operativo
 .DS_Store
