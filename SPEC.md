@@ -1,0 +1,124 @@
+# Spec: API de Importación/Exportación Masiva con Validación Estricta
+
+## Objective
+
+Build a **REST API with FastAPI** that allows bulk import and export of relational data (orders, products, customers) with **strict Pydantic validation**, **partial processing** (valid rows succeed, invalid rows are reported), **JWT authentication**, and **RFC 7807 error reporting**.
+
+**Purpose:** Portfolio project demonstrating DDD architecture, strict validation, partial batch processing, and production-grade error handling.
+
+**Target users:** Developers evaluating backend architecture skills; no end-user UI.
+
+**Success criteria:**
+- `POST /upload` accepts CSV or JSON, validates each row, inserts valid rows, and returns a detailed error report for invalid rows (HTTP 207)
+- `GET /export` returns data in CSV or JSON format, filtered by authenticated user
+- `POST /token` issues JWT tokens via OAuth2 Password Flow
+- All validation errors follow RFC 7807 Problem Details format
+- Test coverage ≥ 80%
+- `ruff check .` and `mypy .` pass with zero errors
+- Docker Compose starts the full stack with one command
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Language | Python | 3.12+ |
+| Framework | FastAPI | 0.115+ |
+| Validation | Pydantic | 2.x |
+| ORM | SQLAlchemy | 2.x |
+| Migrations | Alembic | 1.13+ |
+| Database | PostgreSQL | 16 |
+| Auth | python-jose + passlib | — |
+| Testing | pytest + pytest-cov + pytest-mock | — |
+| Linting | ruff | — |
+| Type checking | mypy | — |
+| Containers | Docker + Docker Compose | — |
+
+---
+
+## Commands
+
+See [AGENTS.md](AGENTS.md) for the full command reference. Quick reference:
+
+```bash
+docker-compose up                    # Start PostgreSQL + API
+pytest --cov=app                    # Run tests with coverage
+ruff check .                        # Lint
+mypy .                              # Type check
+alembic upgrade head                # Apply migrations
+```
+
+---
+
+## Project Structure
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full directory layout, component diagrams, and technical justifications.
+
+---
+
+## Code Style
+
+See [docs/CODE-STYLE.md](docs/CODE-STYLE.md) for naming conventions, SOLID principles, file rules, pre-commit checks, and prohibited practices.
+
+Key convention summary:
+
+| Category | Convention | Example |
+|----------|-----------|---------|
+| Pydantic classes | PascalCase + `Schema` suffix | `OrderCreateSchema` |
+| SQLAlchemy models | PascalCase + `Model` suffix | `OrderModel` |
+| Domain entities | PascalCase (no suffix) | `Order`, `Product` |
+| Functions/variables | snake_case | `validate_order`, `order_id` |
+| Type hints | Required on all functions | `def create_order(data: OrderCreateSchema) -> Order:` |
+| Max file length | 300 lines (except `__init__.py`) | — |
+
+---
+
+## Testing Strategy
+
+See [docs/TESTING.md](docs/TESTING.md) for frameworks, fixtures, examples, quality metrics, and mocking strategy.
+
+| Level | Framework | Location | Coverage Target |
+|-------|-----------|----------|----------------|
+| **Unit** | pytest + pytest-mock | `tests/unit/` | 90% |
+| **Integration** | pytest + TestClient | `tests/integration/` | 80% |
+| **E2E** | pytest + httpx | `tests/e2e/` | 70% |
+
+---
+
+## Boundaries
+
+See [AGENTS.md](AGENTS.md) for the full boundaries list.
+
+- **Always:** Use static typing, include docstrings, validate all inputs, use env vars for secrets, run `pytest` before commits
+- **Ask first:** Database schema changes, adding dependencies, changing CI config, modifying `WORKFLOW.md` spec states
+- **Never:** Hardcode secrets, use `print` for debugging, ignore exceptions, use raw SQL, skip validation in `ValidationService`, commit failing tests without approval
+
+---
+
+## Success Criteria
+
+| # | Criterion | How to Verify |
+|---|-----------|---------------|
+| 1 | `POST /upload` accepts CSV and JSON, validates rows, inserts valid data, returns RFC 7807 errors for invalid rows | Integration test: upload mixed valid/invalid data, assert 207 with error details |
+| 2 | `GET /export` returns data in CSV or JSON format for authenticated users | E2E test: login → upload → export, verify data integrity |
+| 3 | `POST /token` issues JWT tokens via OAuth2 Password Flow | Unit test: valid credentials return token, invalid return 401 |
+| 4 | All validation errors follow RFC 7807 Problem Details format | Unit test: assert error response matches RFC 7807 schema |
+| 5 | Test coverage ≥ 80% | `pytest --cov=app --cov-report=term-missing` |
+| 6 | `ruff check .` passes with zero errors | `ruff check .` |
+| 7 | `mypy .` passes with zero errors | `mypy .` |
+| 8 | Docker Compose starts full stack with one command | `docker-compose up` → API responds on port 8000 |
+| 9 | Domain layer has zero external dependencies | Verify no DB/HTTP imports in `app/core/` |
+| 10 | Partial processing: valid rows succeed even when other rows fail | Integration test: upload 5 valid + 3 invalid rows, assert 5 inserted + 3 errors reported |
+
+---
+
+## Open Questions
+
+| # | Question | Status | Notes |
+|---|----------|--------|-------|
+| 1 | Should `/export` support filtering by date range, status, or customer? | **Open** | MVP may only need basic export; filters can be added later |
+| 2 | What is the maximum batch size for `/upload`? | **Proposed: 1000 rows** | Needs confirmation; affects timeout and memory config |
+| 3 | Should `/upload` support file upload (multipart) or only JSON body? | **Proposed: JSON body + multipart** | CSV as file upload, JSON as body; needs decision on multipart parsing |
+| 4 | Should the API support pagination on `/export`? | **Open** | Without pagination, large datasets could cause memory issues |
+| 5 | What is the token expiration time for JWT? | **Proposed: 30 minutes** | Configurable via `ACCESS_TOKEN_EXPIRE_MINUTES` env var |
