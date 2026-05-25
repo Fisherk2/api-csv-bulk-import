@@ -113,12 +113,14 @@ See [AGENTS.md](AGENTS.md) for the full boundaries list.
 
 ---
 
-## Open Questions
+## Open Questions — RESOLVED
 
-| # | Question | Status | Notes |
-|---|----------|--------|-------|
-| 1 | Should `/export` support filtering by date range, status, or customer? | **Open** | MVP may only need basic export; filters can be added later |
-| 2 | What is the maximum batch size for `/upload`? | **Proposed: 1000 rows** | Needs confirmation; affects timeout and memory config |
-| 3 | Should `/upload` support file upload (multipart) or only JSON body? | **Proposed: JSON body + multipart** | CSV as file upload, JSON as body; needs decision on multipart parsing |
-| 4 | Should the API support pagination on `/export`? | **Open** | Without pagination, large datasets could cause memory issues |
-| 5 | What is the token expiration time for JWT? | **Proposed: 30 minutes** | Configurable via `ACCESS_TOKEN_EXPIRE_MINUTES` env var |
+> All open questions have been resolved on 2026-05-25. See [WORKFLOW.md](WORKFLOW.md) for decisions and impact.
+
+| # | Question | Status | Decision |
+|---|----------|--------|----------|
+| 1 | Should `/export` support filtering by date range, status, or customer? | **Resolved** | MVP: basic export only — no filters in v1 |
+| 2 | What is the maximum batch size for `/upload`? | **Resolved** | 1000 rows — enforced in `BatchUploadRequestSchema` |
+| 3 | Should `/upload` support file upload (multipart) or only JSON body? | **Resolved** | JSON body + multipart — both formats supported |
+| 4 | Should the API support pagination on `/export`? | **Resolved** | Pagination from v1 — `skip`/`limit` with defaults (0/100) |
+| 5 | What is the token expiration time for JWT? | **Resolved** | 30 minutes — configurable via `ACCESS_TOKEN_EXPIRE_MINUTES` |

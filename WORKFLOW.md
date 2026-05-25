@@ -1,8 +1,8 @@
 # 📋 WORKFLOW.md
 
 **Proyecto:** API de Importación/Exportación Masiva con Validación Estricta
-**Versión:** 1.0.0 | **Fecha:** 2026-05-25 | **Autor:** Fisherk2
-**Estado:** En Planificación | **Metodología:** Spec-Driven Development (SDD)
+**Versión:** 2.0.0 | **Fecha:** 2026-05-25 | **Autor:** Fisherk2
+**Estado:** En Planificación | **Metodología:** Spec-Driven Development (SDD) — Vertical Slices
 **Repositorio:** https://github.com/Fisherk2/api-csv-bulk-import/
 
 ---
@@ -16,6 +16,8 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 - [Code Style & Conventions](docs/CODE-STYLE.md) — Nomenclatura, SOLID, reglas de archivos
 - [Testing Strategy](docs/TESTING.md) — Estrategia de pruebas, frameworks, ejemplos
 - [Security & Error Handling](docs/SECURITY.md) — Validación, errores, rate limiting, secretos
+- [Implementation Plan](tasks/plan.md) — Plan detallado con tareas verticales, criterios de aceptación y verificación
+- [Task Checklist](tasks/todo.md) — Checklist de progreso por fase
 
 ---
 
@@ -23,159 +25,292 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 
 ### Metodología
 
-*Spec-Driven Development* (SDD) con las siguientes fases:
+*Spec-Driven Development* (SDD) con **vertical slices** — cada fase entrega funcionalidad completa y testeable de extremo a extremo, en lugar de capas horizontales.
 
-1. **Preparación (F0):** Configuración del entorno y documentación inicial.
-2. **Infraestructura (F1):** Base de datos, autenticación, y configuración base.
-3. **Núcleo (F2):** Modelos de datos, repositorios, y lógica de negocio.
-4. **Interfaces (F3):** Endpoints de la API.
-5. **Pruebas (F4):** Validación de calidad y cobertura.
-6. **Despliegue (F5):** Configuración para producción.
-7. **Cierre (F6):** Documentación final y retrospectiva.
+> **Cambio vs. v1.0:** Las fases originales (F0–F6) eran horizontales (infra → dominio → interfaces → pruebas). Las nuevas fases (P1–P8) son verticales: cada una construye un camino completo desde la base de datos hasta el endpoint. Ver [tasks/plan.md](tasks/plan.md) para el mapeo detallado.
 
-### 📅 Fases e Hitos
+### 📅 Fases e Hitos (Vertical Slices)
 
-| Fase | Duración | Inicio | Fin | Estado | Hitos Clave |
-|------|----------|--------|-----|--------|-------------|
-| **F0: Preparación** | 1 día | 2026-05-26 | 2026-05-26 | 🔵 In Progress | Estructura de carpetas, `AGENTS.md`, `WORKFLOW.md` |
-| **F1: Infraestructura** | 2 días | 2026-05-27 | 2026-05-28 | ❌ | PostgreSQL, Docker, autenticación JWT |
-| **F2: Núcleo** | 3 días | 2026-05-29 | 2026-05-31 | ❌ | Modelos de datos, repositorios, servicios de validación |
-| **F3: Interfaces** | 2 días | 2026-06-01 | 2026-06-02 | ❌ | Endpoints `/upload`, `/export`, `/token` |
-| **F4: Pruebas** | 2 días | 2026-06-03 | 2026-06-04 | ❌ | Pruebas unitarias, integración, y E2E |
-| **F5: Despliegue** | 1 día | 2026-06-05 | 2026-06-05 | ❌ | Docker para producción, CI/CD |
-| **F6: Cierre** | 1 día | 2026-06-06 | 2026-06-06 | ❌ | Documentación final, retrospectiva |
+| Fase | Duración | Inicio | Fin | Estado | Hitos Clave | Checkpoint |
+|------|----------|--------|-----|--------|-------------|------------|
+| **P1: Foundation** | 1 día | 2026-05-26 | 2026-05-26 | 🔵 In Progress | Directorios, configs, linters | ✅ Tools pass |
+| **P2: Auth Slice** | 2 días | 2026-05-27 | 2026-05-28 | ❌ | DB → User → JWT → `/token` | ✅ Auth works |
+| **P3: Product Slice** | 1 día | 2026-05-29 | 2026-05-29 | ❌ | Product entity → model → repo | — |
+| **P4: Upload Slice** | 3 días | 2026-05-30 | 2026-06-01 | ❌ | Customer → Order → Validation → `/upload` | ✅ Upload works |
+| **P5: Export Slice** | 1 día | 2026-06-02 | 2026-06-02 | ❌ | `/export` con JSON/CSV | ✅ Full flow works |
+| **P6: Testing** | 2 días | 2026-06-03 | 2026-06-04 | ❌ | Unit → Integration → E2E (≥80%) | ✅ Coverage ≥80% |
+| **P7: Deployment** | 1 día | 2026-06-05 | 2026-06-05 | ❌ | Docker prod + CI/CD | — |
+| **P8: Closure** | 1 día | 2026-06-06 | 2026-06-06 | ❌ | Docs, user guide, retrospective | ✅ All done |
 
 ---
 
-## 📋 Specs y Seguimiento
+## 📋 Specs y Seguimiento (Vertical Slices)
 
-### Fase 0: Preparación
+### Fase P1: Foundation
 
-> **📋 Spec detallado:** [specs/F0-PREPARACION.md](specs/F0-PREPARACION.md) — Assessment, directory tree, file contents, verification commands.
+> **Objetivo:** Entorno de desarrollo listo con directorios, configuración y linters.
+> **Plan detallado:** [tasks/plan.md — Tasks 1-3](tasks/plan.md)
 
-| ID | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
-|----|--------|-------------|-----------|----------|-------------|-----------|--------|
-| Spec-F0-001 | Estructura de carpetas | Crear estructura de directorios según DDD | Alta | Nuevos: `app/`, `tests/`, `migrations/` | Ninguna | 0/1 | 🔵 |
-| Spec-F0-002 | Configuración de entorno | `requirements.txt`, `pyproject.toml`, `.env.example`, `Makefile` | Alta | Modificados: 3, Nuevos: 1 | Spec-F0-001 | 0/4 | 🟡 |
-| Spec-F0-003 | Linters y testing | Configurar `ruff`, `mypy`, `pytest` en `pyproject.toml` + `.pre-commit-config.yaml` | Alta | Nuevos: 1, Modificados: 1 | Spec-F0-002 | 0/2 | 🟡 |
-| Spec-F0-004 | Documentación inicial | `AGENTS.md`, `WORKFLOW.md`, `README.md`, `docs/` | Alta | Modificados: 4 | Spec-F0-001 | 4/4 | ✅ |
+| Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
+|------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
+| T01 | Spec-F0-001 | Estructura de carpetas (DDD) | Crear `app/`, `tests/`, `migrations/` con `__init__.py` | Alta | Nuevos: ~25 dirs | Ninguna | 0/4 | 🔵 |
+| T02 | Spec-F0-002 | Configuración de entorno | `requirements.txt`, `pyproject.toml`, `.env.example`, `Makefile` | Alta | Modificados: 4 | T01 | 0/4 | 🟡 |
+| T03 | Spec-F0-003 | Linters y pre-commit | `.pre-commit-config.yaml` + configs en `pyproject.toml` | Alta | Nuevos: 1 | T02 | 0/4 | 🟡 |
 
-**Notas F0:**
+**Notas P1:**
+- Spec-F0-004 (Documentación inicial) ya está ✅ — no se incluye como tarea.
 - `.gitignore` ya está completo (179 líneas) — no necesita cambios.
-- `Dockerfile` y `docker-compose.yml` son placeholders — se completan en F1 (Spec-F1-004).
-- `CONTRIBUTING.md` está vacío — se completa en F6 (Spec-F6-002).
-- Spec-F0-003 consolidado: tool configs en `pyproject.toml` (no archivos separados), más `.pre-commit-config.yaml`.
+- `Dockerfile` y `docker-compose.yml` son placeholders — se completan en P7 (T24).
+- `CONTRIBUTING.md` está vacío — se completa en P8 (T28).
 
-### Fase 1: Infraestructura
+### ✅ Checkpoint P1: Foundation
 
-| ID | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
-|----|--------|-------------|-----------|----------|-------------|-----------|--------|
-| Spec-F1-001 | Configuración de PostgreSQL | SQLAlchemy + Alembic | Alta | Nuevos: 4 archivos | Spec-F0-002 | 0/4 | ❌ |
-| Spec-F1-002 | Modelos SQLAlchemy base | `Base`, `UUIDType` | Alta | Nuevos: 1 archivo | Spec-F1-001 | 0/1 | ❌ |
-| Spec-F1-003 | Autenticación JWT | `jwt_service.py`, `password_service.py`, `dependencies.py` | Alta | Nuevos: 3 archivos | Spec-F0-002 | 0/3 | ❌ |
-| Spec-F1-004 | Configuración de Docker | `Dockerfile`, `docker-compose.yml`, `.dockerignore` | Media | Nuevos: 3 archivos | Spec-F1-001 | 0/3 | ❌ |
-
-### Fase 2: Núcleo
-
-| ID | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
-|----|--------|-------------|-----------|----------|-------------|-----------|--------|
-| Spec-F2-001 | Entidades de dominio (DDD) | `Order`, `Product`, `Customer`, `User` | Alta | Nuevos: 4 archivos | Spec-F1-002 | 0/4 | ❌ |
-| Spec-F2-002 | Interfaces de repositorio | Contratos para cada entidad | Alta | Nuevos: 3 archivos | Spec-F2-001 | 0/3 | ❌ |
-| Spec-F2-003 | Modelos SQLAlchemy | Modelos ORM para cada entidad | Alta | Nuevos: 4 archivos | Spec-F1-001, Spec-F2-001 | 0/4 | ❌ |
-| Spec-F2-004 | Implementación de repositorios | Repositorios con SQLAlchemy | Alta | Nuevos: 3 archivos | Spec-F2-002, Spec-F2-003 | 0/3 | ❌ |
-| Spec-F2-005 | Esquemas Pydantic | Request/response schemas + RFC 7807 | Alta | Nuevos: 5 archivos | Spec-F2-001 | 0/5 | ❌ |
-| Spec-F2-006 | Servicio de validación | `ValidationService` | Alta | Nuevos: 1 archivo | Spec-F2-005 | 0/1 | ❌ |
-| Spec-F2-007 | Servicio de pedidos | `OrderService` | Alta | Nuevos: 1 archivo | Spec-F2-004, Spec-F2-006 | 0/1 | ❌ |
-
-### Fase 3: Interfaces
-
-| ID | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
-|----|--------|-------------|-----------|----------|-------------|-----------|--------|
-| Spec-F3-001 | Endpoint `/token` | OAuth2 Password Flow | Alta | Nuevos: 1, Modificados: 1 | Spec-F1-003 | 0/1 | ❌ |
-| Spec-F3-002 | Endpoint `/upload` | Importar datos CSV/JSON | Alta | Nuevos: 1, Modificados: 1 | Spec-F2-007, Spec-F1-003 | 0/1 | ❌ |
-| Spec-F3-003 | Endpoint `/export` | Exportar datos CSV/JSON | Alta | Nuevos: 1, Modificados: 1 | Spec-F2-004 | 0/1 | ❌ |
-| Spec-F3-004 | Configuración de routers | Incluir todos los endpoints | Alta | Modificados: 2 | Spec-F3-001, Spec-F3-002, Spec-F3-003 | 0/1 | ❌ |
-
-### Fase 4: Pruebas
-
-| ID | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
-|----|--------|-------------|-----------|----------|-------------|-----------|--------|
-| Spec-F4-001 | Pruebas unitarias validación | `ValidationService` + Pydantic schemas | Alta | Nuevos: 1 | Spec-F2-005, Spec-F2-006 | 0/1 | ❌ |
-| Spec-F4-002 | Pruebas unitarias servicios | `OrderService` + repositorios | Alta | Nuevos: 2 | Spec-F2-004, Spec-F2-007 | 0/2 | ❌ |
-| Spec-F4-003 | Pruebas integración `/upload` | Endpoint + autenticación | Alta | Nuevos: 1 | Spec-F3-002, Spec-F1-003 | 0/1 | ❌ |
-| Spec-F4-004 | Pruebas integración `/export` | Endpoint de exportación | Alta | Nuevos: 1 | Spec-F3-003 | 0/1 | ❌ |
-| Spec-F4-005 | Pruebas E2E flujo completo | login → `/upload` → `/export` | Alta | Nuevos: 1 | Spec-F3-001, Spec-F3-002, Spec-F3-003 | 0/1 | ❌ |
-
-### Fase 5: Despliegue
-
-| ID | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
-|----|--------|-------------|-----------|----------|-------------|-----------|--------|
-| Spec-F5-001 | Docker para producción | Optimizar Dockerfile + docker-compose.prod.yml | Media | Modificados: 2, Nuevos: 1 | Spec-F1-004 | 0/2 | ❌ |
-| Spec-F5-002 | Configuración CI/CD | GitHub Actions para testing y deploy | Baja | Nuevos: 2 | Spec-F4-001, Spec-F4-005 | 0/2 | ❌ |
-
-### Fase 6: Cierre
-
-| ID | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
-|----|--------|-------------|-----------|----------|-------------|-----------|--------|
-| Spec-F6-001 | Documentación técnica final | Actualizar `AGENTS.md`, `WORKFLOW.md`, `README.md` | Alta | Modificados: 3 | Spec-F5-001 | 0/3 | ❌ |
-| Spec-F6-002 | Documentación de usuario | Guía de uso con `curl`, Postman | Media | Nuevos: 1 | Spec-F6-001 | 0/1 | ❌ |
-| Spec-F6-003 | Retrospectiva | Lecciones aprendidas y mejoras futuras | Baja | Nuevos: 1 | Spec-F6-001 | 0/1 | ❌ |
+- [ ] Todos los directorios existen con `__init__.py`
+- [ ] `pip install -r requirements.txt` funciona
+- [ ] `ruff check .`, `mypy .`, `pytest --co` corren sin errores de config
+- [ ] `make help` muestra todos los targets
+- [ ] `app/core/` no tiene imports externos (no SQLAlchemy, no FastAPI, no HTTP)
+- [ ] **Revisión con humano antes de proceder**
 
 ---
 
-## 🔗 Diagrama de Dependencia entre Specs
+### Fase P2: Auth Vertical Slice
+
+> **Objetivo:** Un usuario puede autenticarse y obtener un JWT vía `POST /token`.
+> **Plan detallado:** [tasks/plan.md — Tasks 4-7](tasks/plan.md)
+
+| Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
+|------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
+| T04 | Spec-F1-001 | DB Setup + Alembic | `config.py`, `base.py`, `session.py`, Alembic init | Alta | Nuevos: 5-6 | T02 | 0/6 | ❌ |
+| T05 | Spec-F1-002 + Spec-F2-003 (User) | SQLAlchemy Base + User Model | `UserModel`, migración `users` | Alta | Nuevos: 2-3 | T04 | 0/4 | ❌ |
+| T06 | Spec-F2-001 (User) + Spec-F2-005 (Auth schemas) | User Entity + Auth Schemas | `User` entity, `TokenSchema`, `UserCreateSchema`, `ProblemDetailSchema` | Alta | Nuevos: 4-5 | T01, T02 | 0/6 | ❌ |
+| T07 | Spec-F1-003 + Spec-F3-001 | JWT Auth + `/token` Endpoint | `jwt_service.py`, `password_service.py`, `dependencies.py`, `/token`, `main.py` | Alta | Nuevos: 6-7 | T05, T06 | 0/7 | ❌ |
+
+### ✅ Checkpoint P2: Auth Vertical Slice
+
+- [ ] `POST /token` devuelve JWT para credenciales válidas, 401 para inválidas
+- [ ] `get_current_user` dependency valida tokens JWT
+- [ ] Swagger UI en `/docs` muestra el endpoint `/token`
+- [ ] `ruff check .` y `mypy .` pasan sin errores
+- [ ] **Revisión con humano antes de proceder**
+
+---
+
+### Fase P3: Product Vertical Slice
+
+> **Objetivo:** Entidad Product con repositorio — el dominio más simple para validar el patrón DDD.
+> **Plan detallado:** [tasks/plan.md — Tasks 8-9](tasks/plan.md)
+
+| Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
+|------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
+| T08 | Spec-F2-001 (Product) + Spec-F2-005 (Product schemas) | Product Entity + Schemas | `Product` entity, `ProductCreateSchema`, `ProductResponseSchema` | Alta | Nuevos: 2-4 | T01 | 0/4 | ❌ |
+| T09 | Spec-F2-003 (Product) + Spec-F2-002/004 (Product repo) | Product Model + Repository | `ProductModel`, `IProductRepository`, `ProductRepository`, migración | Alta | Nuevos: 5-6 | T04, T08 | 0/5 | ❌ |
+
+---
+
+### Fase P4: Customer + Order Upload Slice
+
+> **Objetivo:** Un usuario autenticado puede hacer `POST /upload` con CSV/JSON y recibir 200/207/422.
+> **Plan detallado:** [tasks/plan.md — Tasks 10-17](tasks/plan.md)
+
+| Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
+|------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
+| T10 | Spec-F2-001 (Customer) + Spec-F2-005 (Customer schemas) | Customer Entity + Schemas | `Customer` entity, `CustomerCreateSchema`, `CustomerResponseSchema` | Alta | Nuevos: 2-4 | T01 | 0/4 | ❌ |
+| T11 | Spec-F2-003 (Customer) + Spec-F2-002/004 (Customer repo) | Customer Model + Repository | `CustomerModel`, `ICustomerRepository`, `CustomerRepository`, migración | Alta | Nuevos: 4-5 | T04, T10 | 0/5 | ❌ |
+| T12 | Spec-F2-001 (Order) + Spec-F2-005 (Order schemas) | Order + OrderItem Entities + Schemas | `Order`, `OrderItem`, `BatchUploadRequestSchema`, `BatchUploadResponseSchema` | Alta | Nuevos: 3-4 | T01 | 0/6 | ❌ |
+| T13 | Spec-F2-003 (Order) + Spec-F2-002/004 (Order repo) | Order Model + Repository | `OrderModel`, `OrderItemModel`, `IOrderRepository`, `OrderRepository`, migración | Alta | Nuevos: 4-5 | T04, T09, T11, T12 | 0/5 | ❌ |
+| T14 | Spec-F2-006 | Validation Service | `ValidationService.validate_batch()` con RFC 7807 | Alta | Nuevos: 1-2 | T06, T12 | 0/3 | ❌ |
+| T15 | Spec-F2-007 | Order Service | `OrderService.upload_orders()` orquestando validación + persistencia | Alta | Nuevos: 1-2 | T13, T14 | 0/3 | ❌ |
+| T16 | *Nuevo* | CSV/JSON Parsers | `csv_parser.py`, `json_parser.py`, `file_utils.py` | Alta | Nuevos: 3-4 | T01 | 0/3 | ❌ |
+| T17 | Spec-F3-002 + Spec-F3-004 (partial) | `/upload` Endpoint | `POST /upload` con auth, validación, procesamiento parcial (200/207/422) | Alta | Nuevos: 2-3 | T07, T15, T16 | 0/8 | ❌ |
+
+**Notas P4:**
+- T16 (CSV/JSON Parsers) es nuevo — no existía en las specs originales, pero es esencial para `/upload`.
+- T17 incluye la configuración de routers (Spec-F3-004 parcial) porque se necesita para que el endpoint funcione.
+
+### ✅ Checkpoint P4: Upload Vertical Slice
+
+- [ ] `POST /upload` con JSON válido → 200
+- [ ] `POST /upload` con mixto válido/inválido → 207 con errores RFC 7807
+- [ ] `POST /upload` con todo inválido → 422
+- [ ] Request sin autenticación → 401
+- [ ] `ruff check .` y `mypy .` pasan sin errores
+- [ ] **Revisión con humano antes de proceder**
+
+---
+
+### Fase P5: Export Vertical Slice
+
+> **Objetivo:** Un usuario autenticado puede hacer `GET /export` y recibir datos en JSON o CSV.
+> **Plan detallado:** [tasks/plan.md — Task 18](tasks/plan.md)
+
+| Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
+|------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
+| T18 | Spec-F3-003 + Spec-F3-004 (partial) | `/export` Endpoint | `GET /export` con negociación de formato JSON/CSV, paginación (`skip`/`limit`), auth requerida | Alta | Nuevos: 2-3 | T07, T13 | 0/8 | ❌ |
+
+### ✅ Checkpoint P5: Full Upload → Export Flow
+
+- [ ] Flujo E2E: `POST /token` → `POST /upload` → `GET /export` funciona
+- [ ] Integridad de datos: datos subidos coinciden con datos exportados
+- [ ] Paginación funciona: `GET /export?skip=10&limit=50` retorna la página correcta
+- [ ] `ruff check .` y `mypy .` pasan sin errores
+- [ ] **Revisión con humano antes de proceder**
+
+---
+
+### Fase P6: Testing
+
+> **Objetivo:** Cobertura ≥ 80%, todas las pruebas pasando.
+> **Plan detallado:** [tasks/plan.md — Tasks 19-23](tasks/plan.md)
+
+| Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
+|------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
+| T19 | Spec-F4-001 | Unit Tests — Validation + Schemas | `test_validation_service.py`, `test_schemas.py` | Alta | Nuevos: 2-3 | T14, T06, T08, T10, T12 | 0/5 | ❌ |
+| T20 | Spec-F4-002 | Unit Tests — Services + Repos | `test_order_service.py`, `test_repositories.py` | Alta | Nuevos: 2-3 | T15, T09, T11, T13 | 0/5 | ❌ |
+| T21 | Spec-F4-003 | Integration Tests — `/upload` | `test_upload_endpoint.py` | Alta | Nuevos: 1-2 | T17, T07 | 0/6 | ❌ |
+| T22 | Spec-F4-004 | Integration Tests — `/export` | `test_export_endpoint.py` | Alta | Nuevos: 1 | T18 | 0/4 | ❌ |
+| T23 | Spec-F4-005 | E2E Tests — Full Flow | `test_full_flow.py` (login → upload → export) | Alta | Nuevos: 1 | T07, T17, T18 | 0/6 | ❌ |
+
+### ✅ Checkpoint P6: Testing Complete
+
+- [ ] `pytest` — todas las pruebas pasan
+- [ ] `pytest --cov=app` — cobertura ≥ 80%
+- [ ] `ruff check .` — cero errores
+- [ ] `mypy .` — cero errores de tipos
+- [ ] **Revisión con humano antes de proceder**
+
+---
+
+### Fase P7: Deployment
+
+> **Objetivo:** Docker para producción y CI/CD configurado.
+> **Plan detallado:** [tasks/plan.md — Tasks 24-25](tasks/plan.md)
+
+| Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
+|------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
+| T24 | Spec-F1-004 | Docker Dev Setup | Multi-stage `Dockerfile`, `docker-compose.yml` (PostgreSQL + API) | Media | Nuevos: 3 | T03, T17 | 0/6 | ❌ |
+| T25 | Spec-F5-001 + Spec-F5-002 | Docker Prod + CI/CD | `docker-compose.prod.yml`, `.github/workflows/ci.yml` | Media | Nuevos: 2 | T24, T23 | 0/5 | ❌ |
+
+---
+
+### Fase P8: Closure
+
+> **Objetivo:** Documentación final, guía de usuario, retrospectiva.
+> **Plan detallado:** [tasks/plan.md — Tasks 26-28](tasks/plan.md)
+
+| Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
+|------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
+| T26 | Spec-F6-001 | Documentación técnica final | Actualizar `README.md`, `AGENTS.md`, `WORKFLOW.md` | Alta | Modificados: 3 | T23 | 0/3 | ❌ |
+| T27 | Spec-F6-002 | Guía de usuario | `USER_GUIDE.md` con ejemplos `curl` para todos los endpoints | Media | Nuevos: 1 | T26 | 0/3 | ❌ |
+| T28 | Spec-F6-003 | Retrospectiva | Lecciones aprendidas, `CONTRIBUTING.md`, resolver preguntas abiertas | Baja | Nuevos: 1-2 | T27 | 0/3 | ❌ |
+
+---
+
+## 🔗 Diagrama de Dependencia entre Tasks (Vertical Slices)
 
 ```mermaid
 graph TD
-    Spec-F0-001[Spec-F0-001\nEstructura de carpetas\n🟡] --> Spec-F0-002[Spec-F0-002\nConfiguración de entorno\n🟡]
-    Spec-F0-002 --> Spec-F0-003[Spec-F0-003\nLinters y testing\n🟡]
-    Spec-F0-001 --> Spec-F0-004[Spec-F0-004\nDocumentación inicial\n✅]
+    T01[T01\nEstructura de carpetas\n🔵] --> T02[T02\nConfiguración de entorno\n🟡]
+    T02 --> T03[T03\nLinters y pre-commit\n🟡]
 
-    Spec-F0-002 --> Spec-F1-001[Spec-F1-001\nPostgreSQL\n❌]
-    Spec-F1-001 --> Spec-F1-002[Spec-F1-002\nModelos SQLAlchemy base\n❌]
-    Spec-F0-002 --> Spec-F1-003[Spec-F1-003\nAutenticación JWT\n❌]
-    Spec-F1-001 --> Spec-F1-004[Spec-F1-004\nDocker\n❌]
+    T02 --> T04[T04\nDB Setup + Alembic\n❌]
+    T04 --> T05[T05\nSQLAlchemy Base + User Model\n❌]
+    T05 --> T06[T06\nUser Entity + Auth Schemas\n❌]
+    T06 --> T07[T07\nJWT Auth + /token Endpoint\n❌]
 
-    Spec-F1-002 --> Spec-F2-001[Spec-F2-001\nEntidades de dominio\n❌]
-    Spec-F2-001 --> Spec-F2-002[Spec-F2-002\nInterfaces de repositorio\n❌]
-    Spec-F1-001 --> Spec-F2-003[Spec-F2-003\nModelos SQLAlchemy\n❌]
-    Spec-F2-002 --> Spec-F2-004[Spec-F2-004\nImplementación de repositorios\n❌]
-    Spec-F2-001 --> Spec-F2-005[Spec-F2-005\nEsquemas Pydantic\n❌]
-    Spec-F2-005 --> Spec-F2-006[Spec-F2-006\nServicio de validación\n❌]
-    Spec-F2-004 --> Spec-F2-007[Spec-F2-007\nServicio de pedidos\n❌]
-    Spec-F2-006 --> Spec-F2-007
+    T04 --> T08[T08\nProduct Entity + Schemas\n❌]
+    T08 --> T09[T09\nProduct Model + Repository\n❌]
 
-    Spec-F1-003 --> Spec-F3-001[Spec-F3-001\nEndpoint /token\n❌]
-    Spec-F2-007 --> Spec-F3-002[Spec-F3-002\nEndpoint /upload\n❌]
-    Spec-F2-004 --> Spec-F3-003[Spec-F3-003\nEndpoint /export\n❌]
-    Spec-F3-001 --> Spec-F3-004[Spec-F3-004\nConfiguración de routers\n❌]
-    Spec-F3-002 --> Spec-F3-004
-    Spec-F3-003 --> Spec-F3-004
+    T08 --> T10[T10\nCustomer Entity + Schemas\n❌]
+    T10 --> T11[T11\nCustomer Model + Repository\n❌]
+    T11 --> T12[T12\nOrder + OrderItem Entities + Schemas\n❌]
+    T12 --> T13[T13\nOrder Model + Repository\n❌]
+    T09 --> T13
+    T13 --> T14[T14\nValidation Service\n❌]
+    T14 --> T15[T15\nOrder Service\n❌]
+    T07 --> T15
+    T15 --> T16[T16\nCSV/JSON Parsers\n❌]
+    T16 --> T17[T17\n/upload Endpoint\n❌]
+    T07 --> T17
 
-    Spec-F2-005 --> Spec-F4-001[Spec-F4-001\nPruebas unitarias validación\n❌]
-    Spec-F2-004 --> Spec-F4-002[Spec-F4-002\nPruebas unitarias servicios\n❌]
-    Spec-F2-007 --> Spec-F4-002
-    Spec-F3-002 --> Spec-F4-003[Spec-F4-003\nPruebas integración /upload\n❌]
-    Spec-F1-003 --> Spec-F4-003
-    Spec-F3-003 --> Spec-F4-004[Spec-F4-004\nPruebas integración /export\n❌]
-    Spec-F3-001 --> Spec-F4-005[Spec-F4-005\nPruebas E2E\n❌]
-    Spec-F3-002 --> Spec-F4-005
-    Spec-F3-003 --> Spec-F4-005
+    T13 --> T18[T18\n/export Endpoint\n❌]
+    T07 --> T18
 
-    Spec-F1-004 --> Spec-F5-001[Spec-F5-001\nDocker para producción\n❌]
-    Spec-F4-005 --> Spec-F5-002[Spec-F5-002\nConfiguración CI/CD\n❌]
+    T14 --> T19[T19\nUnit Tests — Validation + Schemas\n❌]
+    T15 --> T20[T20\nUnit Tests — Services + Repos\n❌]
+    T17 --> T21[T21\nIntegration Tests — /upload\n❌]
+    T18 --> T22[T22\nIntegration Tests — /export\n❌]
+    T07 --> T23[T23\nE2E Tests — Full Flow\n❌]
+    T17 --> T23
+    T18 --> T23
 
-    Spec-F5-001 --> Spec-F6-001[Spec-F6-001\nDocumentación técnica final\n❌]
-    Spec-F6-001 --> Spec-F6-002[Spec-F6-002\nDocumentación de usuario\n❌]
-    Spec-F6-001 --> Spec-F6-003[Spec-F6-003\nRetrospectiva\n❌]
+    T03 --> T24[T24\nDocker Dev Setup\n❌]
+    T24 --> T25[T25\nDocker Prod + CI/CD\n❌]
+
+    T23 --> T26[T26\nDocumentación técnica final\n❌]
+    T26 --> T27[T27\nGuía de usuario\n❌]
+    T27 --> T28[T28\nRetrospectiva\n❌]
 ```
+
+---
+
+## 🔄 Mapeo: Tasks → Specs Originales
+
+La siguiente tabla muestra cómo cada Task del plan vertical mapea a los Specs originales (F0–F6):
+
+| Task | Spec(s) Original(es) | Descripción |
+|------|----------------------|-------------|
+| T01 | Spec-F0-001 | Estructura de carpetas DDD |
+| T02 | Spec-F0-002 | Configuración de entorno |
+| T03 | Spec-F0-003 | Linters y pre-commit |
+| T04 | Spec-F1-001 | Configuración de PostgreSQL (SQLAlchemy + Alembic) |
+| T05 | Spec-F1-002 + Spec-F2-003 (User) | SQLAlchemy Base + User Model |
+| T06 | Spec-F2-001 (User) + Spec-F2-005 (Auth schemas) | User Entity + Auth Schemas + RFC 7807 |
+| T07 | Spec-F1-003 + Spec-F3-001 | JWT Auth + /token Endpoint |
+| T08 | Spec-F2-001 (Product) + Spec-F2-005 (Product schemas) | Product Entity + Schemas |
+| T09 | Spec-F2-003 (Product) + Spec-F2-002/004 (Product repo) | Product Model + Repository |
+| T10 | Spec-F2-001 (Customer) + Spec-F2-005 (Customer schemas) | Customer Entity + Schemas |
+| T11 | Spec-F2-003 (Customer) + Spec-F2-002/004 (Customer repo) | Customer Model + Repository |
+| T12 | Spec-F2-001 (Order) + Spec-F2-005 (Order schemas) | Order + OrderItem Entities + Schemas |
+| T13 | Spec-F2-003 (Order) + Spec-F2-002/004 (Order repo) | Order Model + Repository |
+| T14 | Spec-F2-006 | Validation Service |
+| T15 | Spec-F2-007 | Order Service |
+| T16 | *Nuevo* | CSV/JSON Parsers (no en specs originales) |
+| T17 | Spec-F3-002 + Spec-F3-004 (partial) | /upload Endpoint + routers |
+| T18 | Spec-F3-003 + Spec-F3-004 (partial) | /export Endpoint + routers |
+| T19 | Spec-F4-001 | Unit Tests — Validation + Schemas |
+| T20 | Spec-F4-002 | Unit Tests — Services + Repos |
+| T21 | Spec-F4-003 | Integration Tests — /upload |
+| T22 | Spec-F4-004 | Integration Tests — /export |
+| T23 | Spec-F4-005 | E2E Tests — Full Flow |
+| T24 | Spec-F1-004 | Docker Dev Setup |
+| T25 | Spec-F5-001 + Spec-F5-002 | Docker Prod + CI/CD |
+| T26 | Spec-F6-001 | Documentación técnica final |
+| T27 | Spec-F6-002 | Guía de usuario |
+| T28 | Spec-F6-003 | Retrospectiva |
 
 ---
 
 ## 📜 Reglas de Flujo de Trabajo
 
-1. **Orden de implementación:** No implementar un *spec* si sus dependencias no están en estado ✅ Completado. Actualizar estado y fechas al iniciar/completar cada uno.
-2. **Revisión de código:** Cada *spec* debe ser revisado y aprobado antes de marcarlo como ✅. Usar checklists para validar criterios.
-3. **Control de versiones:** Usar Git con mensajes descriptivos (ej: `feat: implement Spec-F2-001 (Order entity)`). Crear rama por *spec* (ej: `feat/Spec-F2-001`).
-4. **Testing:** Cada *spec* debe incluir pruebas unitarias (si aplica). Ejecutar `pytest` antes de marcar como ✅.
+1. **Orden de implementación:** No implementar un *task* si sus dependencias no están en estado ✅ Completado. Actualizar estado y fechas al iniciar/completar cada uno.
+2. **Revisión de código:** Cada *task* debe ser revisado y aprobado antes de marcarlo como ✅. Usar checklists para validar criterios. Ver [tasks/plan.md](tasks/plan.md) para criterios de aceptación detallados.
+3. **Control de versiones:** Usar Git con mensajes descriptivos (ej: `feat: implement T08 (Product entity + schemas)`). Crear rama por *task* (ej: `feat/T08-product-entity`).
+4. **Testing:** Ejecutar `pytest` antes de marcar un task como ✅. Los tasks de testing (T19–T23) requieren cobertura ≥ 80%.
 5. **Documentación:** Actualizar `AGENTS.md` y `WORKFLOW.md` al completar cada fase. Incluir docstrings en todo código nuevo.
+6. **Checkpoints:** No proceder a la siguiente fase sin pasar el checkpoint correspondiente. Los checkpoints requieren revisión con humano.
+7. **Vertical slices:** Cada fase entrega funcionalidad completa y testeable de extremo a extremo. No avanzar a P4 sin que P2 (auth) funcione end-to-end.
+
+---
+
+## ✅ Preguntas Resueltas (desde SPEC.md)
+
+> Todas las preguntas abiertas del SPEC.md han sido resueltas el 2026-05-25. No quedan preguntas pendientes.
+
+| # | Pregunta | Decisión | Impacto en Plan |
+|---|----------|----------|-----------------|
+| 1 | ¿Debe `/export` soportar filtros? | **MVP: sin filtros** — sin filtros por fecha/estado en v1 | T18 implementa export básico; filtros son trabajo futuro |
+| 2 | ¿Tamaño máximo de batch para `/upload`? | **1000 filas** — validado en `BatchUploadRequestSchema` | Reflejado en `.env.example` como `MAX_BATCH_SIZE=1000` |
+| 3 | ¿Debe `/upload` soportar file upload? | **JSON body + multipart** — ambos formatos soportados | T16 implementa ambos parsers; T17 acepta ambos |
+| 4 | ¿Debe `/export` soportar paginación? | **Paginación desde v1** — `skip`/`limit` con defaults | T18 implementa paginación con `skip=0` y `limit=100` por defecto |
+| 5 | ¿Tiempo de expiración del JWT? | **30 minutos** — configurable via env var | Reflejado en `.env.example` como `ACCESS_TOKEN_EXPIRE_MINUTES=30` |
