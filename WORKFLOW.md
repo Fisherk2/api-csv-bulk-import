@@ -37,7 +37,7 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 
 | Fase | Duración | Inicio | Fin | Estado | Hitos Clave |
 |------|----------|--------|-----|--------|-------------|
-| **F0: Preparación** | 1 día | 2026-05-26 | 2026-05-26 | 🟡 | Estructura de carpetas, `AGENTS.md`, `WORKFLOW.md` |
+| **F0: Preparación** | 1 día | 2026-05-26 | 2026-05-26 | 🔵 In Progress | Estructura de carpetas, `AGENTS.md`, `WORKFLOW.md` |
 | **F1: Infraestructura** | 2 días | 2026-05-27 | 2026-05-28 | ❌ | PostgreSQL, Docker, autenticación JWT |
 | **F2: Núcleo** | 3 días | 2026-05-29 | 2026-05-31 | ❌ | Modelos de datos, repositorios, servicios de validación |
 | **F3: Interfaces** | 2 días | 2026-06-01 | 2026-06-02 | ❌ | Endpoints `/upload`, `/export`, `/token` |
@@ -51,12 +51,20 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 
 ### Fase 0: Preparación
 
+> **📋 Spec detallado:** [specs/F0-PREPARACION.md](specs/F0-PREPARACION.md) — Assessment, directory tree, file contents, verification commands.
+
 | ID | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
 |----|--------|-------------|-----------|----------|-------------|-----------|--------|
-| Spec-F0-001 | Estructura de carpetas | Crear estructura de directorios según DDD | Alta | Nuevos: `app/`, `tests/`, `migrations/` | Ninguna | 0/1 | 🟡 |
-| Spec-F0-002 | Configuración de entorno | `requirements.txt`, `pyproject.toml`, `.env.example`, `.gitignore` | Alta | Nuevos: 4 archivos | Spec-F0-001 | 0/4 | 🟡 |
-| Spec-F0-003 | Linters y testing | Configurar `ruff`, `mypy`, `pytest`, `pytest-cov` | Alta | Nuevos: `.ruff.toml`, `mypy.ini`, `pytest.ini` | Spec-F0-002 | 0/3 | 🟡 |
-| Spec-F0-004 | Documentación inicial | `AGENTS.md`, `WORKFLOW.md`, `CONTRIBUTING.md`, `README.md` | Alta | Nuevos: 4 archivos | Spec-F0-001 | 0/4 | ✅ |
+| Spec-F0-001 | Estructura de carpetas | Crear estructura de directorios según DDD | Alta | Nuevos: `app/`, `tests/`, `migrations/` | Ninguna | 0/1 | 🔵 |
+| Spec-F0-002 | Configuración de entorno | `requirements.txt`, `pyproject.toml`, `.env.example`, `Makefile` | Alta | Modificados: 3, Nuevos: 1 | Spec-F0-001 | 0/4 | 🟡 |
+| Spec-F0-003 | Linters y testing | Configurar `ruff`, `mypy`, `pytest` en `pyproject.toml` + `.pre-commit-config.yaml` | Alta | Nuevos: 1, Modificados: 1 | Spec-F0-002 | 0/2 | 🟡 |
+| Spec-F0-004 | Documentación inicial | `AGENTS.md`, `WORKFLOW.md`, `README.md`, `docs/` | Alta | Modificados: 4 | Spec-F0-001 | 4/4 | ✅ |
+
+**Notas F0:**
+- `.gitignore` ya está completo (179 líneas) — no necesita cambios.
+- `Dockerfile` y `docker-compose.yml` son placeholders — se completan en F1 (Spec-F1-004).
+- `CONTRIBUTING.md` está vacío — se completa en F6 (Spec-F6-002).
+- Spec-F0-003 consolidado: tool configs en `pyproject.toml` (no archivos separados), más `.pre-commit-config.yaml`.
 
 ### Fase 1: Infraestructura
 
