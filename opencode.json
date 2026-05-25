@@ -1,0 +1,124 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "model": "opencode-go/kimi-k2.6",
+  "small_model": "openrouter/z-ai/glm-4.5-air:free",
+
+  "agent": {
+    "huitzilopochtli": {
+      "model": "opencode-go/qwen3.6-plus"
+    },
+    "quetzalcoatl": {
+      "model": "opencode-go/glm-5.1"
+    },
+    "tezcatlipoca": {
+      "model": "opencode-go/deepseek-v4-pro"
+    },
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    },
+    "platform-engineer": {
+      "hidden": true
+    },
+    "explore": {
+      "model": "opencode-go/deepseek-v4-flash"
+    },
+    "general": {
+      "model": "opencode-go/minimax-m2.5"
+    }
+  },
+
+  "instructions": [
+    "CONTRIBUTING.md",
+    "WORKFLOW.md",
+    "SPEC.md",
+    "USER_GUIDE.md",
+    "docs/opencode/08-orchestration-patterns.md"
+  ],
+
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "ls": "allow",
+      "ls *": "allow",
+      "grep *": "allow",
+      "wc *": "allow",
+      "find *": "allow",
+      "echo": "allow",
+      "echo *": "allow",
+      "printf *": "allow",
+      "cat *": "allow",
+      "head *": "allow",
+      "tail *": "allow",
+      "sort *": "allow",
+      "uniq *": "allow",
+      "cut *": "allow",
+      "awk *": "allow",
+      "sed *": "allow",
+      "tr *": "allow",
+      "diff *": "allow",
+      "tee *": "allow",
+      "xargs *": "allow",
+      "nl *": "allow",
+      "column *": "allow",
+      "cksum *": "allow",
+      "env": "deny",
+      "env *": "deny",
+      "printenv *": "deny",
+      "which *": "allow",
+      "pwd": "allow",
+      "file *": "allow",
+      "stat *": "allow",
+      "du *": "allow",
+      "date *": "allow",
+      "dirname *": "allow",
+      "basename *": "allow",
+      "realpath *": "allow",
+      "git status *": "allow",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "git branch": "allow",
+      "git branch -r": "allow",
+      "git show *": "allow",
+      "git bisect *": "allow",
+      "git blame *": "allow",
+      "* .env": "deny",
+      "* .env.*": "deny",
+      "* ./.env": "deny",
+      "* ./.env.*": "deny",
+      "* .env.example": "allow"
+    },
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    }
+  },
+
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "excel": {
+      "type": "local",
+      "command": ["uvx", "excel-mcp-server", "stdio"],
+      "enabled": false
+    },
+    "jupyter": {
+      "type": "local",
+      "command": ["uvx", "mcp-jupyter-notebook"],
+      "enabled": false,
+      "env": {
+        "MCP_JUPYTER_SESSION_MODE": "server",
+        "MCP_JUPYTER_BASE_URL": "http://localhost:8888",
+        "MCP_JUPYTER_TOKEN": "mcp-dev-token",
+        "MCP_JUPYTER_NOTEBOOK_PATH": "agent_demo.ipynb"
+      }
+    }
+  }
+}
