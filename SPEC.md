@@ -26,11 +26,14 @@ Build a **REST API with FastAPI** that allows bulk import and export of relation
 | Language | Python | 3.12+ |
 | Framework | FastAPI | 0.115+ |
 | Validation | Pydantic | 2.x |
-| ORM | SQLAlchemy | 2.x |
+| ORM | SQLAlchemy (async) | 2.x |
+| Async DB Driver | asyncpg | 0.29+ |
+| Sync DB Driver (Alembic) | psycopg2-binary | 2.9+ |
+| Async Test DB | aiosqlite | 0.20+ |
 | Migrations | Alembic | 1.13+ |
 | Database | PostgreSQL | 16 |
 | Auth | python-jose + passlib | — |
-| Testing | pytest + pytest-cov + pytest-mock | — |
+| Testing | pytest + pytest-cov + pytest-mock + pytest-asyncio | — |
 | Linting | ruff | — |
 | Type checking | mypy | — |
 | Containers | Docker + Docker Compose | — |
@@ -80,9 +83,9 @@ See [docs/TESTING.md](docs/TESTING.md) for frameworks, fixtures, examples, quali
 
 | Level | Framework | Location | Coverage Target |
 |-------|-----------|----------|----------------|
-| **Unit** | pytest + pytest-mock | `tests/unit/` | 90% |
-| **Integration** | pytest + TestClient | `tests/integration/` | 80% |
-| **E2E** | pytest + httpx | `tests/e2e/` | 70% |
+| **Unit** | pytest + pytest-mock + pytest-asyncio | `tests/unit/` | 90% |
+| **Integration** | pytest + httpx.AsyncClient + pytest-asyncio | `tests/integration/` | 80% |
+| **E2E** | pytest + httpx.AsyncClient + pytest-asyncio | `tests/e2e/` | 70% |
 
 ---
 
@@ -103,6 +106,8 @@ See [AGENTS.md](AGENTS.md) for the full boundaries list.
 | 1 | `POST /upload` accepts CSV and JSON, validates rows, inserts valid data, returns RFC 7807 errors for invalid rows | Integration test: upload mixed valid/invalid data, assert 207 with error details |
 | 2 | `GET /export` returns data in CSV or JSON format for authenticated users | E2E test: login → upload → export, verify data integrity |
 | 3 | `POST /token` issues JWT tokens via OAuth2 Password Flow | Unit test: valid credentials return token, invalid return 401 |
+| 3a | `GET /` returns health check response | Integration test: `GET /` → 200 `{"status": "ok", "version": "1.0.0"}` |
+| 3b | CORS middleware allows configured origins | Integration test: preflight request returns correct CORS headers |
 | 4 | All validation errors follow RFC 7807 Problem Details format | Unit test: assert error response matches RFC 7807 schema |
 | 5 | Test coverage ≥ 80% | `pytest --cov=app --cov-report=term-missing` |
 | 6 | `ruff check .` passes with zero errors | `ruff check .` |

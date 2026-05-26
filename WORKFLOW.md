@@ -34,7 +34,7 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 | Fase | Duración | Inicio | Fin | Estado | Hitos Clave | Checkpoint |
 |------|----------|--------|-----|--------|-------------|------------|
 | **P1: Foundation** | 1 día | 2026-05-26 | 2026-05-25 | ✅ Completed | Directorios, configs, linters | ✅ Tools pass |
-| **P2: Auth Slice** | 2 días | 2026-05-27 | 2026-05-28 | 🟡 Ready for Specs | DB → User → JWT → `/token` | ✅ Auth works |
+| **P2: Auth Slice** | 2 días | 2026-05-27 | 2026-05-28 | 🔵 Spec Written | DB → User → JWT → `/token` + `GET /` health | ✅ Auth works |
 | **P3: Product Slice** | 1 día | 2026-05-29 | 2026-05-29 | ❌ | Product entity → model → repo | — |
 | **P4: Upload Slice** | 3 días | 2026-05-30 | 2026-06-01 | ❌ | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 día | 2026-06-02 | 2026-06-02 | ❌ | `/export` con JSON/CSV | ✅ Full flow works |
@@ -81,22 +81,32 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 
 ### Fase P2: Auth Vertical Slice
 
-> **Objetivo:** Un usuario puede autenticarse y obtener un JWT vía `POST /token`.
-> **Plan detallado:** [tasks/plan.md — Tasks 4-7](tasks/plan.md)
+> **Objetivo:** Un usuario puede autenticarse y obtener un JWT vía `POST /token`, y los endpoints protegidos pueden validar el token vía `get_current_user`. Incluye health check `GET /` y CORS.
+> **Spec detallado:** [specs/P2-AUTH-SLICE.md](specs/P2-AUTH-SLICE.md) | **Plan detallado:** [tasks/plan.md — Tasks 4-7](tasks/plan.md)
+
+**Decisiones arquitectónicas P2:**
+- **AD-P2-01:** SQLAlchemy async con `asyncpg` (runtime) + `psycopg2-binary` (Alembic migrations)
+- **AD-P2-02:** Test fixtures para crear usuarios de prueba (sin endpoint de registro en P2)
+- **AD-P2-03:** Health check `GET /` incluido en P2
+- **AD-P2-04:** CORS middleware con orígenes configurables vía `CORS_ORIGINS`
 
 | Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
 |------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
-| T04 | Spec-F1-001 | DB Setup + Alembic | `config.py`, `base.py`, `session.py`, Alembic init | Alta | Nuevos: 5-6 | T02 | 0/6 | 🟡 Ready |
-| T05 | Spec-F1-002 + Spec-F2-003 (User) | SQLAlchemy Base + User Model | `UserModel`, migración `users` | Alta | Nuevos: 2-3 | T04 | 0/4 | 🟡 Ready |
-| T06 | Spec-F2-001 (User) + Spec-F2-005 (Auth schemas) | User Entity + Auth Schemas | `User` entity, `TokenSchema`, `UserCreateSchema`, `ProblemDetailSchema` | Alta | Nuevos: 4-5 | T01, T02 | 0/6 | 🟡 Ready |
-| T07 | Spec-F1-003 + Spec-F3-001 | JWT Auth + `/token` Endpoint | `jwt_service.py`, `password_service.py`, `dependencies.py`, `/token`, `main.py` | Alta | Nuevos: 6-7 | T05, T06 | 0/7 | 🟡 Ready |
+| T04 | Spec-F1-001 | DB Setup + Alembic (async) | `config.py`, `base.py`, `session.py` (async), Alembic init, `requirements.txt` update | Alta | Nuevos: 6-8 | T02 | 0/6 | 🔵 Spec Written |
+| T05 | Spec-F1-002 + Spec-F2-003 (User) | SQLAlchemy Base + User Model | `UserModel` con UUID, migración `users` | Alta | Nuevos: 2-3 | T04 | 0/4 | 🔵 Spec Written |
+| T06 | Spec-F2-001 (User) + Spec-F2-005 (Auth schemas) | User Entity + Auth Schemas | `User` entity, `TokenSchema`, `UserCreateSchema`, `ProblemDetailSchema` | Alta | Nuevos: 4-5 | T01, T02 | 0/6 | 🔵 Spec Written |
+| T07 | Spec-F1-003 + Spec-F3-001 | JWT Auth + `/token` + `GET /` + CORS | `jwt_service.py`, `password_service.py`, `dependencies.py`, `/token`, `GET /`, `main.py` con CORS | Alta | Nuevos: 6-8 | T05, T06 | 0/7 | 🔵 Spec Written |
 
 ### ✅ Checkpoint P2: Auth Vertical Slice
 
 - [ ] `POST /token` devuelve JWT para credenciales válidas, 401 para inválidas
 - [ ] `get_current_user` dependency valida tokens JWT
-- [ ] Swagger UI en `/docs` muestra el endpoint `/token`
+- [ ] `GET /` devuelve `{"status": "ok", "version": "1.0.0"}`
+- [ ] Swagger UI en `/docs` muestra `/token` y `GET /`
+- [ ] CORS middleware configurado con orígenes configurables
 - [ ] `ruff check .` y `mypy .` pasan sin errores
+- [ ] Todos los tests P2 pasan (unit + integration)
+- [ ] `app/core/` no tiene imports externos
 - [ ] **Revisión con humano antes de proceder**
 
 ---

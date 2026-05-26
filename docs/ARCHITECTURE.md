@@ -28,6 +28,7 @@
 | **Batch transactions** | Single transaction, Per-row transactions | Balance between **consistency** and **partial processing** |
 | **Pydantic for validation** | Marshmallow, manual | **Native FastAPI integration**, static typing, declarative validation |
 | **PostgreSQL** | SQLite, MySQL | **Native JSON support**, advanced transactions, scalability |
+| **Async SQLAlchemy** | Synchronous SQLAlchemy | FastAPI is async-native; async DB operations prevent blocking the event loop. Alembic migrations remain synchronous. |
 
 ---
 
@@ -51,7 +52,7 @@ graph TD
     J -->|4. Persists data| K[Order Repository]
     F -->|Queries data| K
 
-    K -->|SQLAlchemy| L[(PostgreSQL)]
+    K -->|Async SQLAlchemy| L[(PostgreSQL)]
     G -->|JWT| M[JWT Service]
     M -->|Secrets| N[.env]
 
@@ -104,13 +105,13 @@ api-import-export/
 │   ├── infrastructure/          # Implementation details
 │   │   ├── __init__.py
 │   │   ├── database/            # DB config and SQLAlchemy models
-│   │   │   ├── base.py          # SQLAlchemy declarative base
+│   │   │   ├── base.py          # SQLAlchemy DeclarativeBase (async-compatible)
 │   │   │   ├── models/          # SQLAlchemy models
 │   │   │   │   ├── order.py
 │   │   │   │   ├── product.py
 │   │   │   │   ├── customer.py
 │   │   │   │   └── user.py
-│   │   │   └── session.py       # Session and connection config
+│   │   │   └── session.py       # Async engine + session factory + get_db
 │   │   ├── repositories/        # Repository implementations
 │   │   │   ├── order_repository.py
 │   │   │   ├── product_repository.py
@@ -170,3 +171,4 @@ api-import-export/
 | **Unit of Work** | Batch transaction handling in `OrderService` | Guarantees consistency in complex operations |
 | **Factory** | `PydanticSchemaFactory` (dynamic schema creation if MVP extends) | Flexibility in object creation |
 | **Adapter** | `CSVParser`, `JSONParser` (input normalization) | Handles multiple input formats with a common interface |
+| **Async Session** | `AsyncSession` with `asyncpg` driver, sync `psycopg2` for Alembic | Non-blocking DB operations in FastAPI; Alembic uses synchronous driver |

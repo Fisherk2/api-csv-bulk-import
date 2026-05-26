@@ -180,20 +180,21 @@ graph TD
 
 ---
 
-#### Task 4: Database Setup + Alembic
+#### Task 4: Database Setup + Alembic (Async)
 
-**Description:** Configure PostgreSQL connection via SQLAlchemy 2.x, create the declarative base (`app/infrastructure/database/base.py`), session factory (`app/infrastructure/database/session.py`), and initialize Alembic for migrations. Create `app/config.py` with `pydantic-settings` to load all env vars.
+**Description:** Configure async PostgreSQL connection via SQLAlchemy 2.x, create the declarative base (`app/infrastructure/database/base.py`), async session factory (`app/infrastructure/database/session.py`), and initialize Alembic for migrations. Create `app/config.py` with `pydantic-settings` to load all env vars. Update `requirements.txt` with async dependencies.
 
 **Acceptance criteria:**
-- [ ] `app/config.py` defines `Settings` class with all env vars (DATABASE_URL, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MAX_BATCH_SIZE, MAX_FILE_SIZE_MB, RATE_LIMIT_PER_MINUTE, DEBUG)
-- [ ] `app/infrastructure/database/base.py` defines `Base = declarative_base()` and a `UUIDType` for primary keys
-- [ ] `app/infrastructure/database/session.py` provides `get_db()` dependency and `engine`/`SessionLocal` configuration
-- [ ] `migrations/env.py` is configured to import `Base.metadata` and use `Settings.DATABASE_URL`
-- [ ] `alembic.ini` points to the correct migrations directory
-- [ ] `alembic revision --autogenerate -m "initial"` runs without errors (requires running PostgreSQL or SQLite for test)
+- [ ] `app/config.py` defines `Settings` class with all env vars (DATABASE_URL, SYNC_DATABASE_URL, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, MAX_BATCH_SIZE, MAX_FILE_SIZE_MB, RATE_LIMIT_PER_MINUTE, CORS_ORIGINS, DEBUG, HOST, PORT)
+- [ ] `app/infrastructure/database/base.py` defines `Base` using `DeclarativeBase` (SQLAlchemy 2.x style) and `UUIDType` for primary keys
+- [ ] `app/infrastructure/database/session.py` provides `get_db()` async dependency and `engine`/`AsyncSessionLocal` configuration using `create_async_engine`
+- [ ] `migrations/env.py` is configured to import `Base.metadata` and use `SYNC_DATABASE_URL` (synchronous, for Alembic)
+- [ ] `migrations/alembic.ini` points to the correct migrations directory
+- [ ] `migrations/script.mako` is the standard Alembic template
+- [ ] `requirements.txt` updated with `asyncpg`, `aiosqlite`, `greenlet`, `pytest-asyncio`
 
 **Verification:**
-- [ ] `python -c "from app.config import Settings; s = Settings(); print(s.DATABASE_URL)"` — prints configured URL
+- [ ] `python -c "from app.config import Settings; s = Settings(); print(s.DATABASE_URL)"` — prints async URL
 - [ ] `python -c "from app.infrastructure.database.base import Base; print(Base)"` — imports successfully
 - [ ] `python -c "from app.infrastructure.database.session import get_db; print(get_db)"` — imports successfully
 - [ ] `alembic upgrade head` — runs (may need PostgreSQL running)
@@ -208,20 +209,23 @@ graph TD
 - `migrations/env.py` (new or modify Alembic template)
 - `migrations/alembic.ini` (new)
 - `migrations/script.mako` (new)
+- `requirements.txt` (update — add asyncpg, aiosqlite, greenlet, pytest-asyncio)
+- `.env.example` (update — add SYNC_DATABASE_URL, CORS_ORIGINS, update DATABASE_URL format)
 
-**Estimated scope:** Medium (5-6 files)
+**Estimated scope:** Medium (6-8 files)
 
 ---
 
 #### Task 5: SQLAlchemy Base + User Model
 
-**Description:** Create the SQLAlchemy `UserModel` in `app/infrastructure/database/models/user.py` with fields: `id` (UUID), `username` (unique), `hashed_password`, `is_active`, `created_at`. Create the initial Alembic migration for the `users` table.
+**Description:** Create the SQLAlchemy `UserModel` in `app/infrastructure/database/models/user.py` with fields: `id` (UUID), `username` (unique), `hashed_password`, `is_active`, `created_at`. Create the initial Alembic migration for the `users` table. Uses `Mapped` and `mapped_column` (SQLAlchemy 2.x declarative style).
 
 **Acceptance criteria:**
-- [ ] `UserModel` inherits from `Base` with `__tablename__ = "users"`
-- [ ] Fields: `id` (UUID primary key), `username` (String, unique, indexed), `hashed_password` (String), `is_active` (Boolean, default True), `created_at` (DateTime, server_default=now)
+- [ ] `UserModel` inherits from `Base` with `__tablename__ = "users"` using `Mapped` type annotations
+- [ ] Fields: `id` (UUID primary key, server_default=uuid4), `username` (String, unique, indexed, not nullable), `hashed_password` (String, not nullable), `is_active` (Boolean, default=True), `created_at` (DateTime, server_default=func.now())
+- [ ] `UserModel` has `__repr__` method returning `f"User(id={self.id}, username={self.username})"`
 - [ ] `alembic revision --autogenerate -m "add_users_table"` generates a migration creating the `users` table
-- [ ] `alembic upgrade head` applies the migration
+- [ ] `alembic upgrade head` applies the migration successfully
 
 **Verification:**
 - [ ] `python -c "from app.infrastructure.database.models.user import UserModel; print(UserModel.__tablename__)"` — prints "users"
@@ -271,25 +275,28 @@ graph TD
 
 ---
 
-#### Task 7: JWT Auth + /token Endpoint
+#### Task 7: JWT Auth + /token Endpoint + Health Check + CORS
 
-**Description:** Implement `jwt_service.py` (create/verify tokens), `password_service.py` (hash/verify passwords), and `dependencies.py` (get_current_user dependency) in `app/infrastructure/auth/`. Create the `/token` endpoint in `app/infrastructure/api/endpoints/auth.py` using FastAPI's `OAuth2PasswordRequestForm`. Wire up the router in `app/infrastructure/api/routers.py` and create `app/main.py` with the FastAPI app factory.
+**Description:** Implement `jwt_service.py` (create/verify tokens), `password_service.py` (hash/verify passwords), and `dependencies.py` (get_current_user dependency) in `app/infrastructure/auth/`. Create the `/token` endpoint in `app/infrastructure/api/endpoints/auth.py` using FastAPI's `OAuth2PasswordRequestForm`. Create `GET /` health check endpoint. Wire up the router in `app/infrastructure/api/routers.py` and create `app/main.py` with the FastAPI app factory including CORS middleware.
 
 **Acceptance criteria:**
 - [ ] `JWTService.create_token(username: str) -> str` creates a JWT with configurable expiration
-- [ ] `JWTService.verify_token(token: str) -> TokenDataSchema` validates and decodes a JWT
+- [ ] `JWTService.verify_token(token: str) -> TokenDataSchema | None` validates and decodes a JWT
 - [ ] `PasswordService.hash_password(password: str) -> str` hashes with bcrypt
 - [ ] `PasswordService.verify_password(plain_password: str, hashed_password: str) -> bool` verifies against bcrypt
-- [ ] `get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponseSchema` dependency validates JWT and returns user
+- [ ] `get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> UserResponseSchema` dependency validates JWT and returns user
 - [ ] `POST /token` accepts `OAuth2PasswordRequestForm` and returns `TokenSchema` on success, 401 on failure
-- [ ] `app/main.py` creates the FastAPI app with CORS, routers, and startup/shutdown events
+- [ ] `GET /` returns `{"status": "ok", "version": "1.0.0"}` health check
+- [ ] `app/main.py` creates the FastAPI app with CORS middleware, routers, and startup/shutdown events
 - [ ] All auth-related env vars (`SECRET_KEY`, `ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`) are loaded from `Settings`
+- [ ] CORS origins are configurable via `CORS_ORIGINS` env var
 
 **Verification:**
 - [ ] `python -c "from app.infrastructure.auth.jwt_service import JWTService; print(JWTService)"` — imports successfully
 - [ ] `python -c "from app.infrastructure.auth.password_service import PasswordService; print(PasswordService)"` — imports successfully
 - [ ] `uvicorn app.main:app &` then `curl -X POST http://localhost:8000/token -d "username=test&password=test"` — returns 401 (no user in DB yet, but endpoint exists)
-- [ ] `curl http://localhost:8000/docs` — Swagger UI loads with `/token` endpoint visible
+- [ ] `curl http://localhost:8000/` — returns `{"status": "ok", "version": "1.0.0"}`
+- [ ] `curl http://localhost:8000/docs` — Swagger UI loads with `/token` and `GET /` endpoints visible
 
 **Dependencies:** Task 5 (User model), Task 6 (User entity, auth schemas)
 
@@ -310,7 +317,9 @@ graph TD
 
 - [ ] `POST /token` returns JWT for valid credentials, 401 for invalid
 - [ ] `get_current_user` dependency validates JWT tokens
-- [ ] Swagger UI at `/docs` shows the `/token` endpoint
+- [ ] `GET /` returns health check response `{"status": "ok", "version": "1.0.0"}`
+- [ ] CORS middleware configured with configurable origins
+- [ ] Swagger UI at `/docs` shows `/token` and `GET /` endpoints
 - [ ] `ruff check .` and `mypy .` pass
 - [ ] **Review with human before proceeding**
 

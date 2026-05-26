@@ -24,18 +24,25 @@
 
 ---
 
-## Phase 2: Auth Vertical Slice 🟡 Ready for Specs
+## Phase 2: Auth Vertical Slice 🔵 Spec Written
 
-- [ ] **T04** — Database Setup + Alembic — `config.py`, `base.py`, `session.py`, Alembic init
-- [ ] **T05** — SQLAlchemy Base + User Model — `UserModel`, migration for `users` table
-- [ ] **T06** — User Entity + Auth Schemas — `User` entity, `TokenSchema`, `UserCreateSchema`, `ProblemDetailSchema`
-- [ ] **T07** — JWT Auth + /token Endpoint — `jwt_service.py`, `password_service.py`, `dependencies.py`, `/token`, `main.py`
+> **Spec:** [specs/P2-AUTH-SLICE.md](../specs/P2-AUTH-SLICE.md)
+> **Architectural Decisions:** Async SQLAlchemy (AD-P2-01), Test fixtures (AD-P2-02), Health check (AD-P2-03), CORS (AD-P2-04)
+
+- [ ] **T04** — Database Setup + Alembic (async) — `config.py`, `base.py` (DeclarativeBase), `session.py` (async), Alembic init, `requirements.txt` update, `.env.example` update
+- [ ] **T05** — SQLAlchemy Base + User Model — `UserModel` with `Mapped` type annotations, migration for `users` table
+- [ ] **T06** — User Entity + Auth Schemas — `User` entity (dataclass), `TokenSchema`, `UserCreateSchema`, `ProblemDetailSchema` (RFC 7807)
+- [ ] **T07** — JWT Auth + /token + GET / + CORS — `jwt_service.py`, `password_service.py`, `dependencies.py` (async), `/token`, `GET /`, `main.py` with CORS
 
 ### ✅ Checkpoint: Auth Vertical Slice
 - [ ] `POST /token` returns JWT for valid credentials, 401 for invalid
 - [ ] `get_current_user` dependency validates JWT tokens
-- [ ] Swagger UI at `/docs` shows `/token` endpoint
+- [ ] `GET /` returns `{"status": "ok", "version": "1.0.0"}`
+- [ ] Swagger UI at `/docs` shows `/token` and `GET /` endpoints
+- [ ] CORS middleware configured with configurable origins
 - [ ] `ruff check .` and `mypy .` pass
+- [ ] All P2 unit and integration tests pass
+- [ ] `app/core/` has zero external imports
 
 ---
 
@@ -113,7 +120,7 @@
 | Phase | Tasks | Completed | Status |
 |-------|-------|-----------|--------|
 | 1. Foundation | 3 | 3 | ✅ Completed |
-| 2. Auth Slice | 4 | 0 | 🟡 Ready for Specs |
+| 2. Auth Slice | 4 | 0 | 🔵 Spec Written |
 | 3. Product Slice | 2 | 0 | ❌ Not started |
 | 4. Upload Slice | 8 | 0 | ❌ Not started |
 | 5. Export Slice | 1 | 0 | ❌ Not started |
