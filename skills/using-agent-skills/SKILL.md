@@ -34,8 +34,12 @@ Task arrives
     │   │   ├── Designing professional UI/UX? ──→ ui-ux-design-pro
     │   │   └── Validating visual consistency? ──→ design-taste-frontend
     │   ├── API work? ────────────────→ api-and-interface-design
+    │   │   ├── Building FastAPI endpoints? ──→ fastapi-templates
     │   │   └── Need OpenAPI/AsyncAPI specs? ──→ api-spec-generation
     │   ├── Database work? ────────────→ db-migration
+    │   │   ├── Designing PostgreSQL tables? ──→ postgresql-table-design
+    │   │   └── SQLAlchemy ORM + Alembic? ──→ sqlalchemy-alembic-expert-best-practices-code-review
+    │   ├── Pydantic schemas/validation? ──→ building-pydantic-ai-agents
     │   ├── Working with Docker? ──────→ docker-optimize
     │   ├── Need better context? ─────→ context-engineering
     │   ├── Need doc-verified code? ───→ source-driven-development
@@ -45,6 +49,7 @@ Task arrives
     │   ├── Need resilient error handling? ──→ error-handling-patterns
     │   └── Implementing domain logic? ──→ clean-ddd-hexagonal
     ├── Writing/running tests? ────────→ test-driven-development
+    │   ├── Python/pytest patterns? ───→ python-testing-patterns
     │   ├── Browser-based? ───────────→ browser-testing-with-devtools
     │   └── Testing error paths? ──→ error-handling-patterns
     ├── Something broke? ──────────────→ debugging-and-error-recovery
@@ -253,3 +258,8 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Ship | incident-response | Run incident response workflow — triage, communicate, and write postmortem |
 | Extra | xlsx | Create, edit, and manipulate spreadsheet files (.xlsx, .csv, .tsv) with formulas, formatting, and formulas |
 | Extra | excel-analysis | Analyze Excel spreadsheets, create pivot tables, generate charts, and perform data analysis |
+| Extra | fastapi-templates | FastAPI project templates, endpoint patterns, middleware, and async best practices |
+| Extra | building-pydantic-ai-agents | Pydantic v2 models, validators, serialization, and AI agent integration patterns |
+| Extra | sqlalchemy-alembic-expert-best-practices-code-review | SQLAlchemy 2.x ORM patterns, Alembic migrations, and code review guidance |
+| Extra | postgresql-table-design | PostgreSQL table design, indexing strategies, constraints, and query optimization |
+| Extra | python-testing-patterns | pytest fixtures, parametrization, mocking, coverage, and Python testing best practices |
