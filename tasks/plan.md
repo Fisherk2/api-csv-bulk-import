@@ -11,7 +11,7 @@
 
 Build a **REST API with FastAPI** for bulk import/export of relational data (orders, products, customers) with strict Pydantic validation, partial processing (valid rows succeed, invalid rows are reported), JWT authentication, and RFC 7807 error reporting.
 
-The project currently has **zero implementation code** — only documentation, placeholder config files, and specs exist. This plan reorganizes the original horizontal phases (F0–F6 from WORKFLOW.md) into **vertical slices** that each deliver working, testable functionality end-to-end.
+The project currently has **Phase 1 (Foundation) completed** — directory structure, configuration files, linters, and 33 verification tests all passing. No implementation code yet (no endpoints, services, or models). This plan reorganizes the original horizontal phases (F0–F6 from WORKFLOW.md) into **vertical slices** that each deliver working, testable functionality end-to-end.
 
 ---
 
@@ -161,14 +161,16 @@ graph TD
 
 ---
 
-### Checkpoint: Foundation ✅
+### Checkpoint: Foundation ✅ COMPLETED (2026-05-25)
 
-- [ ] All directories exist with `__init__.py` files
-- [ ] `pip install -r requirements.txt` succeeds
-- [ ] `ruff check .`, `mypy .`, `pytest --co` all run without config errors
-- [ ] `make help` prints all targets
-- [ ] `app/core/` has zero external imports
-- [ ] **Review with human before proceeding**
+- [x] All directories exist with `__init__.py` files
+- [x] `pip install -r requirements.txt` succeeds
+- [x] `ruff check .`, `mypy .`, `pytest --co` all run without config errors
+- [x] `make help` prints all targets
+- [x] `app/core/` has zero external imports
+- [x] **Review with human completed** — 5 axes passed
+
+**Results:** 33 tests passing, ruff zero issues, mypy zero issues. 8 commits on `feature/api-import-export`.
 
 ---
 

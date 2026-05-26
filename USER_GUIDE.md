@@ -281,7 +281,7 @@ project-root/
 │   ├── quetzalcoatl.md         #   Architect of Specifications
 │   └── tezcatlipoca.md         #   Build Agent
 │
-├── skills/                     # 43 skills (42 engineering + 1 meta-skill)
+├── skills/                     # 48 skills (43 engineering + 1 meta-skill + 4 stack-specific)
     │   ├── using-agent-skills/     #   META: skill discovery
     │   ├── idea-refine/            #   DEFINE
     │   ├── spec-driven-development/#   DEFINE
@@ -299,14 +299,19 @@ project-root/
     │   ├── frontend-ui-engineering/     # BUILD
     │   ├── api-and-interface-design/    # BUILD
     │   ├── api-spec-generation/         # BUILD
+    │   ├── fastapi-templates/           # BUILD (STACK)
+    │   ├── building-pydantic-ai-agents/ # BUILD (STACK)
     │   ├── docker-optimize/             # BUILD / SHIP
     │   ├── db-migration/                # BUILD / SHIP
+    │   ├── sqlalchemy-alembic-expert-best-practices-code-review/ # BUILD / REVIEW (STACK)
+    │   ├── postgresql-table-design/     # BUILD (STACK)
     │   ├── solid/                       # BUILD / REVIEW
     │   ├── clean-code/                  # BUILD / REVIEW
     │   ├── error-handling-patterns/     # BUILD / VERIFY / REVIEW
     │   ├── design-taste-frontend/       # BUILD / VERIFY / REVIEW
     │   ├── bash-defensive-patterns/     # BUILD / SHIP
     │   ├── browser-testing-with-devtools/ # VERIFY
+    │   ├── python-testing-patterns/     # VERIFY (STACK)
     │   ├── debugging-and-error-recovery/  # VERIFY
     │   ├── code-review-and-quality/       # REVIEW
     │   ├── code-simplification/           # REVIEW

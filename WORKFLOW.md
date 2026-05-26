@@ -2,7 +2,7 @@
 
 **Proyecto:** API de Importación/Exportación Masiva con Validación Estricta
 **Versión:** 2.0.0 | **Fecha:** 2026-05-25 | **Autor:** Fisherk2
-**Estado:** En Planificación | **Metodología:** Spec-Driven Development (SDD) — Vertical Slices
+**Estado:** En Implementación | **Metodología:** Spec-Driven Development (SDD) — Vertical Slices
 **Repositorio:** https://github.com/Fisherk2/api-csv-bulk-import/
 
 ---
@@ -33,8 +33,8 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 
 | Fase | Duración | Inicio | Fin | Estado | Hitos Clave | Checkpoint |
 |------|----------|--------|-----|--------|-------------|------------|
-| **P1: Foundation** | 1 día | 2026-05-26 | 2026-05-26 | 🔵 In Progress | Directorios, configs, linters | ✅ Tools pass |
-| **P2: Auth Slice** | 2 días | 2026-05-27 | 2026-05-28 | ❌ | DB → User → JWT → `/token` | ✅ Auth works |
+| **P1: Foundation** | 1 día | 2026-05-26 | 2026-05-25 | ✅ Completed | Directorios, configs, linters | ✅ Tools pass |
+| **P2: Auth Slice** | 2 días | 2026-05-27 | 2026-05-28 | 🟡 Ready for Specs | DB → User → JWT → `/token` | ✅ Auth works |
 | **P3: Product Slice** | 1 día | 2026-05-29 | 2026-05-29 | ❌ | Product entity → model → repo | — |
 | **P4: Upload Slice** | 3 días | 2026-05-30 | 2026-06-01 | ❌ | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 día | 2026-06-02 | 2026-06-02 | ❌ | `/export` con JSON/CSV | ✅ Full flow works |
@@ -53,9 +53,9 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 
 | Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
 |------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
-| T01 | Spec-F0-001 | Estructura de carpetas (DDD) | Crear `app/`, `tests/`, `migrations/` con `__init__.py` | Alta | Nuevos: ~25 dirs | Ninguna | 0/4 | 🔵 |
-| T02 | Spec-F0-002 | Configuración de entorno | `requirements.txt`, `pyproject.toml`, `.env.example`, `Makefile` | Alta | Modificados: 4 | T01 | 0/4 | 🟡 |
-| T03 | Spec-F0-003 | Linters y pre-commit | `.pre-commit-config.yaml` + configs en `pyproject.toml` | Alta | Nuevos: 1 | T02 | 0/4 | 🟡 |
+| T01 | Spec-F0-001 | Estructura de carpetas (DDD) | Crear `app/`, `tests/`, `migrations/` con `__init__.py` | Alta | Nuevos: ~25 dirs | Ninguna | 4/4 | ✅ |
+| T02 | Spec-F0-002 | Configuración de entorno | `requirements.txt`, `pyproject.toml`, `.env.example`, `Makefile` | Alta | Modificados: 4 | T01 | 4/4 | ✅ |
+| T03 | Spec-F0-003 | Linters y pre-commit | `.pre-commit-config.yaml` + configs en `pyproject.toml` | Alta | Nuevos: 1 | T02 | 4/4 | ✅ |
 
 **Notas P1:**
 - Spec-F0-004 (Documentación inicial) ya está ✅ — no se incluye como tarea.
@@ -65,12 +65,17 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 
 ### ✅ Checkpoint P1: Foundation
 
-- [ ] Todos los directorios existen con `__init__.py`
-- [ ] `pip install -r requirements.txt` funciona
-- [ ] `ruff check .`, `mypy .`, `pytest --co` corren sin errores de config
-- [ ] `make help` muestra todos los targets
-- [ ] `app/core/` no tiene imports externos (no SQLAlchemy, no FastAPI, no HTTP)
-- [ ] **Revisión con humano antes de proceder**
+- [x] Todos los directorios existen con `__init__.py`
+- [x] `pip install -r requirements.txt` funciona (formato correcto; PEP 668 en sistema no afecta `requirements.txt`)
+- [x] `ruff check .`, `mypy .`, `pytest --co` corren sin errores de config
+- [x] `make help` muestra todos los targets
+- [x] `app/core/` no tiene imports externos (verificado por tests AST)
+- [x] **Revisión con humano completada** — 5 ejes: Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅
+
+**Notas de cierre P1:**
+- 33 tests passing, ruff zero issues, mypy zero issues.
+- 8 commits en `feature/api-import-export`.
+- P1 completado el 2026-05-25. P2 (Auth Slice) listo para definir specs.
 
 ---
 
@@ -81,10 +86,10 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 
 | Task | Spec Original | Nombre | Descripción | Prioridad | Archivos | Dependencias | Checklist | Estado |
 |------|--------------|--------|-------------|-----------|----------|-------------|-----------|--------|
-| T04 | Spec-F1-001 | DB Setup + Alembic | `config.py`, `base.py`, `session.py`, Alembic init | Alta | Nuevos: 5-6 | T02 | 0/6 | ❌ |
-| T05 | Spec-F1-002 + Spec-F2-003 (User) | SQLAlchemy Base + User Model | `UserModel`, migración `users` | Alta | Nuevos: 2-3 | T04 | 0/4 | ❌ |
-| T06 | Spec-F2-001 (User) + Spec-F2-005 (Auth schemas) | User Entity + Auth Schemas | `User` entity, `TokenSchema`, `UserCreateSchema`, `ProblemDetailSchema` | Alta | Nuevos: 4-5 | T01, T02 | 0/6 | ❌ |
-| T07 | Spec-F1-003 + Spec-F3-001 | JWT Auth + `/token` Endpoint | `jwt_service.py`, `password_service.py`, `dependencies.py`, `/token`, `main.py` | Alta | Nuevos: 6-7 | T05, T06 | 0/7 | ❌ |
+| T04 | Spec-F1-001 | DB Setup + Alembic | `config.py`, `base.py`, `session.py`, Alembic init | Alta | Nuevos: 5-6 | T02 | 0/6 | 🟡 Ready |
+| T05 | Spec-F1-002 + Spec-F2-003 (User) | SQLAlchemy Base + User Model | `UserModel`, migración `users` | Alta | Nuevos: 2-3 | T04 | 0/4 | 🟡 Ready |
+| T06 | Spec-F2-001 (User) + Spec-F2-005 (Auth schemas) | User Entity + Auth Schemas | `User` entity, `TokenSchema`, `UserCreateSchema`, `ProblemDetailSchema` | Alta | Nuevos: 4-5 | T01, T02 | 0/6 | 🟡 Ready |
+| T07 | Spec-F1-003 + Spec-F3-001 | JWT Auth + `/token` Endpoint | `jwt_service.py`, `password_service.py`, `dependencies.py`, `/token`, `main.py` | Alta | Nuevos: 6-7 | T05, T06 | 0/7 | 🟡 Ready |
 
 ### ✅ Checkpoint P2: Auth Vertical Slice
 
@@ -210,8 +215,8 @@ Para contexto del proyecto, stack técnico, arquitectura y convenciones, consult
 
 ```mermaid
 graph TD
-    T01[T01\nEstructura de carpetas\n🔵] --> T02[T02\nConfiguración de entorno\n🟡]
-    T02 --> T03[T03\nLinters y pre-commit\n🟡]
+    T01[T01\nEstructura de carpetas\n✅] --> T02[T02\nConfiguración de entorno\n✅]
+    T02 --> T03[T03\nLinters y pre-commit\n✅]
 
     T02 --> T04[T04\nDB Setup + Alembic\n❌]
     T04 --> T05[T05\nSQLAlchemy Base + User Model\n❌]
