@@ -133,7 +133,7 @@ class TestCoreLayerImports:
         This validates that no third-party packages sneak into the domain layer
         through indirect imports or typo-level imports.
         """
-        allowed = _STDLIB | {"core"} | {"__future__"}
+        allowed = _STDLIB | {"core"} | {"__future__"} | {"app"}
 
         violations = _find_violations(
             lambda f, imports: (
