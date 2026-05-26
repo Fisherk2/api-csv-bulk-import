@@ -11,11 +11,8 @@
 *.swp
 *.swo
 *~
-.eclipse/
-.metadata/
-.recommenders/
 
-# AI Agent - Excluye configuraciones personales de otros editores y artefactos de runtime
+# AI Agent - Excluye configuraciones personales y artefactos de runtime
 .windsurf/
 .gemini/
 .continue/
@@ -64,17 +61,11 @@ pgadmin/
 pg_hba.conf.local
 postgresql.conf.local
 
-# Documentación generada - Excluye archivos generados automáticamente
-docs/build/
-*.html
-*.png.temp
-diagrams/generated/
-mermaid-output/
-
 # Python - Entorno virtual y dependencias
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
 venv/
 env/
 ENV/
@@ -98,79 +89,22 @@ coverage.xml
 junit.xml
 .tox/
 
-# Configuración - Secretos y archivos locales
-#.env*
-config/*secret*.yaml
-config/*local*.yaml
-*.secret.yaml
-*.local.yaml
+# Python - Type checking y linting caches
+.mypy_cache/
+.ruff_cache/
 
-# Modulos de Node.js
-node_modules/
-
-# Docker y Contenedores - Excluye configuraciones de contenedores y orquestación
+# Docker y Contenedores - Excluye configuraciones locales de contenedores
 .docker/
 docker-compose.override.yml
-*.kubeconfig
-kubeconfig*
 
-# Lenguajes Adicionales - Excluye artefactos de build y dependencias
-# Go
-vendor/
-*.exe
-*.test
-coverage.txt
-# Rust
-target/
-# Java/Maven
-*.class
-*.jar
-*.war
-target/
-.mvn/
-# Ruby
-vendor/bundle/
-.bundle/
-
-# Frameworks Web - Excluye directorios de build y archivos generados
-# Next.js
-.next/
-out/
-# Vite / Webpack
-dist/
-build/
-# Laravel
-storage/*.key
-# Django
-*.pot
-*.mo
-
-# Cloud e Infraestructura - Excluye credenciales y configuraciones de servicios
-# AWS
+# Cloud credentials - Excluye credenciales de servicios cloud
 .aws/credentials
-aws-config.json
-# SSH
 *.pem
 *.key
-# GCP
 *.json.key
 service-account*.json
-# Terraform
-*.tfstate
-*.tfstate.*
-.terraform/
-crash.log
-override.tf
 
-# Testing y Coverage - Excluye reportes y caché de herramientas de testing
-.nyc_output/
-lcov.info
-*.lcov
-junit/
-test-results/
-allure-results/
-
-# Entornos Locales - Excluye configuraciones específicas de cada desarrollador
+# Locales - Excluye configuraciones específicas de cada desarrollador
 local.properties
 local.gradle
 *.local
