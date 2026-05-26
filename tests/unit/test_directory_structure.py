@@ -82,7 +82,7 @@ class TestDirectoryStructure:
         actual_dirs = sorted(
             str(p.relative_to(PROJECT_ROOT))
             for p in app_root.rglob("*")
-            if p.is_dir()
+            if p.is_dir() and p.name != "__pycache__"
         )
         expected_app_dirs = [
             d for d in REQUIRED_DIRECTORIES if d.startswith("app")
