@@ -21,9 +21,7 @@ class IProductRepository(ABC):
         ...
 
     @abstractmethod
-    async def get_all(
-        self, skip: int = 0, limit: int = 100
-    ) -> list[Product]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[Product]:
         """Retrieve all products with pagination."""
         ...
 
@@ -34,10 +32,12 @@ class IProductRepository(ABC):
 
     @abstractmethod
     async def create_batch(self, products: list[Product]) -> list[Product]:
-        """Insert multiple products using INSERT ... ON CONFLICT DO NOTHING.
+        """Insert multiple products, skipping duplicates by primary key.
 
-        Silently skips duplicates. Returns the list of successfully
-        inserted products.
+        Uses INSERT ... ON CONFLICT (id) DO NOTHING. Products with
+        duplicate IDs are silently skipped; all other products are
+        inserted. Returns the input products regardless of which
+        were actually persisted.
         """
         ...
 

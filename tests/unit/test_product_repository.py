@@ -91,27 +91,43 @@ class TestProductRepositoryCRUD:
         assert len(created) == 3
 
     @pytest.mark.asyncio
-    async def test_create_batch_duplicate_handling(
-        self, test_db_session
-    ) -> None:
-        """create_batch must handle duplicates without error."""
+    async def test_create_batch_duplicate_handling(self, test_db_session) -> None:
+        """create_batch must skip duplicate IDs and insert unique ones."""
+        from uuid import uuid4
+
         from app.infrastructure.repositories.product_repository import (
             ProductRepository,
         )
 
         repo = ProductRepository(session=test_db_session)
-        product = Product(name="Duplicate", price=5.0, stock=10)
-        await repo.create(product)
 
-        # Try inserting the same product again via batch
-        batch = [Product(name="Unique", price=1.0, stock=1)]
-        result = await repo.create_batch(batch)
-        assert len(result) >= 0
+        # Create a product with a known UUID
+        known_id = uuid4()
+        original = Product(id=known_id, name="Original", price=5.0, stock=10)
+        await repo.create(original)
+
+        # Batch insert: one duplicate ID, one unique product
+        duplicate = Product(id=known_id, name="Duplicate", price=10.0, stock=20)
+        unique = Product(name="Unique", price=1.0, stock=1)
+
+        result = await repo.create_batch([duplicate, unique])
+
+        # No error should be raised
+        assert len(result) == 2
+
+        # Unique product must be persisted
+        found_unique = await repo.get_by_id(unique.id)
+        assert found_unique is not None
+        assert found_unique.name == "Unique"
+
+        # Original product must be unchanged (duplicate skipped)
+        found_original = await repo.get_by_id(known_id)
+        assert found_original is not None
+        assert found_original.name == "Original"
+        assert found_original.price == 5.0
 
     @pytest.mark.asyncio
-    async def test_get_by_ids_retrieves_multiple(
-        self, test_db_session
-    ) -> None:
+    async def test_get_by_ids_retrieves_multiple(self, test_db_session) -> None:
         """get_by_ids must retrieve multiple products by their ids."""
         from app.infrastructure.repositories.product_repository import (
             ProductRepository,

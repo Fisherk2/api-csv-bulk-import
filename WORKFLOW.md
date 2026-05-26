@@ -1,7 +1,7 @@
 # 📋 WORKFLOW.md
 
 **Project:** Bulk Import/Export API with Strict Validation
-**Version:** 2.0.0 | **Date:** 2026-05-25 | **Author:** Fisherk2
+**Version:** 2.1.0 | **Date:** 2026-05-26 | **Author:** Fisherk2
 **Status:** Under Implementation | **Methodology:** Spec-Driven Development (SDD) — Vertical Slices
 **Repository:** https://github.com/Fisherk2/api-csv-bulk-import/
 
@@ -120,20 +120,43 @@ For project context, technical stack, architecture and conventions, refer to [AG
 ### Phase P3: Product Vertical Slice
 
 > **Objective:** Product entity with repository — the simplest domain to validate the DDD pattern.
-> **Status:** 🟢 Spec Ready — `specs/P3-PRODUCT-SLICE.md` written with T08-T09.
-> **Detailed plan:** [tasks/plan.md — Tasks 8-9](tasks/plan.md)
-> **Detailed spec:** [specs/P3-PRODUCT-SLICE.md](specs/P3-PRODUCT-SLICE.md)
+> **Detailed spec:** [specs/P3-PRODUCT-SLICE.md](specs/P3-PRODUCT-SLICE.md) | **Detailed plan:** [tasks/plan.md — Tasks 8-9](tasks/plan.md)
+
+**P3 Architectural Decisions:**
+- **AD-P3-01:** Product as simplest domain validates full DDD pipeline before Customer/Order
+- **AD-P3-02:** Repository interface uses `abc.ABC` with `@abstractmethod` (not `Protocol`)
+- **AD-P3-03:** Batch insert uses `INSERT ... ON CONFLICT (id) DO NOTHING` for true partial processing, with dialect-aware fallback between PostgreSQL and SQLite
+- **AD-P3-04:** Logging with `logging.getLogger(__name__)` before rollback in `create_batch` — errors are logged but never propagated to the caller
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
 | T08 | Spec-F2-001 (Product) + Spec-F2-005 (Product schemas) | Product Entity + Schemas | `Product` entity, `ProductCreateSchema`, `ProductResponseSchema` | High | New: 2-4 | T01 | 4/4 | ✅ |
 | T09 | Spec-F2-003 (Product) + Spec-F2-002/004 (Product repo) | Product Model + Repository | `ProductModel`, `IProductRepository`, `ProductRepository`, migration | High | New: 5-6 | T04, T08 | 5/5 | ✅ |
 
+### ✅ Checkpoint P3: Product Vertical Slice
+
+- [x] `Product` domain entity is `@dataclass` in `app/core/` with zero external imports
+- [x] `ProductCreateSchema` validates name, price, stock with proper constraints and whitespace stripping
+- [x] `ProductResponseSchema` includes UUID with `from_attributes=True`
+- [x] `ProductModel` maps to `products` table with all columns and index on `name`
+- [x] `IProductRepository` interface defines all 5 CRUD methods using ABC
+- [x] `ProductRepository` implements all methods with async SQLAlchemy and `ON CONFLICT DO NOTHING` for batch insert
+- [x] Alembic migration creates `products` table cleanly
+- [x] `ruff check .` and `mypy .` pass without errors (mypy has pre-existing stub errors only)
+- [x] **Human review completed** — 5 axes: Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅
+
+**P3 Closing Notes:**
+- 110 tests passing, coverage 86.22%, ruff zero issues, mypy pre-existing only.
+- 5 commits on `feature/api-import-export` (508f4a5 → eae44bd).
+- P3 completed on 2026-05-26. P4 (Upload Slice) ready to define specs.
+- **Technical decisions:** Core `insert().on_conflict_do_nothing()` with dialect-aware import (`pg_insert` for PostgreSQL, `sqlite_insert` for SQLite); runtime dialect detection via `self._session.get_bind().dialect.name`; `logging.getLogger(__name__)` added for error visibility; explicit `created_at`/`updated_at` timestamps required for Core `insert()` (ORM defaults don't apply).
+
 ---
 
 ### Phase P4: Customer + Order Upload Slice
 
 > **Objective:** An authenticated user can send `POST /upload` with CSV/JSON and receive 200/207/422.
+> **Status:** 🟢 Spec Ready — `specs/P4-UPLOAD-SLICE.md` pending definition.
 > **Detailed plan:** [tasks/plan.md — Tasks 10-17](tasks/plan.md)
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
@@ -236,13 +259,13 @@ graph TD
     T01[T01\nFolder structure\n✅] --> T02[T02\nEnvironment config\n✅]
     T02 --> T03[T03\nLinters and pre-commit\n✅]
 
-    T02 --> T04[T04\nDB Setup + Alembic\n❌]
-    T04 --> T05[T05\nSQLAlchemy Base + User Model\n❌]
-    T05 --> T06[T06\nUser Entity + Auth Schemas\n❌]
-    T06 --> T07[T07\nJWT Auth + /token Endpoint\n❌]
+    T02 --> T04[T04\nDB Setup + Alembic\n✅]
+    T04 --> T05[T05\nSQLAlchemy Base + User Model\n✅]
+    T05 --> T06[T06\nUser Entity + Auth Schemas\n✅]
+    T06 --> T07[T07\nJWT Auth + /token Endpoint\n✅]
 
-    T04 --> T08[T08\nProduct Entity + Schemas\n❌]
-    T08 --> T09[T09\nProduct Model + Repository\n❌]
+    T04 --> T08[T08\nProduct Entity + Schemas\n✅]
+    T08 --> T09[T09\nProduct Model + Repository\n✅]
 
     T08 --> T10[T10\nCustomer Entity + Schemas\n❌]
     T10 --> T11[T11\nCustomer Model + Repository\n❌]

@@ -1,7 +1,7 @@
 # TODO: API de Importación/Exportación Masiva con Validación Estricta
 
 **Methodology:** Vertical Slice Planning (SDD)
-**Last Updated:** 2026-05-28
+**Last Updated:** 2026-05-26
 **Full Plan:** [tasks/plan.md](plan.md)
 
 ---
@@ -62,15 +62,15 @@
 - [x] `ProductResponseSchema` includes UUID with `from_attributes=True`
 - [x] `ProductModel` maps to `products` table with all columns and index on `name`
 - [x] `IProductRepository` interface defines all 5 CRUD methods using ABC
-- [x] `ProductRepository` implements all methods with async SQLAlchemy
+- [x] `ProductRepository` implements all methods with async SQLAlchemy and `ON CONFLICT DO NOTHING` for batch insert
 - [x] Alembic migration creates `products` table cleanly
-- [x] 109 tests passing, coverage 86%, ruff clean, mypy pre-existing only
+- [x] Code review passed — 5 axes: Correctness, Readability, Architecture, Security, Performance
 
-**Summary:** 109 tests passing, coverage 86%. 2 commits on `feature/api-import-export`. P4 (Upload Slice) ready.
+**Summary:** 110 tests passing, coverage 86.22%, ruff zero issues, mypy pre-existing only. 5 commits on `feature/api-import-export` (508f4a5 → eae44bd). P4 (Upload Slice) ready for specs.
 
 ---
 
-## Phase 4: Customer + Order Upload Slice
+## Phase 4: Customer + Order Upload Slice 🟢 Ready for Specs
 
 - [ ] **T10** — Customer Entity + Schemas — `Customer` entity, `CustomerCreateSchema`, `CustomerResponseSchema`
 - [ ] **T11** — Customer Model + Repository — `CustomerModel`, `ICustomerRepository`, `CustomerRepository`, migration
