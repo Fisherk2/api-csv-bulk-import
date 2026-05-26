@@ -51,10 +51,22 @@
 
 ---
 
-## Phase 3: Product Vertical Slice
+## Phase 3: Product Vertical Slice ✅ Completed (2026-05-26)
 
-- [ ] **T08** — Product Entity + Schemas — `Product` entity, `ProductCreateSchema`, `ProductResponseSchema`
-- [ ] **T09** — Product Model + Repository — `ProductModel`, `IProductRepository`, `ProductRepository`, migration
+- [x] **T08** — Product Entity + Schemas — `Product` entity, `ProductCreateSchema`, `ProductResponseSchema`
+- [x] **T09** — Product Model + Repository — `ProductModel`, `IProductRepository`, `ProductRepository`, migration
+
+### ✅ Checkpoint: Product Vertical Slice — PASSED
+- [x] `Product` domain entity is `@dataclass` in `app/core/` with zero external imports
+- [x] `ProductCreateSchema` validates name, price, stock with proper constraints and whitespace stripping
+- [x] `ProductResponseSchema` includes UUID with `from_attributes=True`
+- [x] `ProductModel` maps to `products` table with all columns and index on `name`
+- [x] `IProductRepository` interface defines all 5 CRUD methods using ABC
+- [x] `ProductRepository` implements all methods with async SQLAlchemy
+- [x] Alembic migration creates `products` table cleanly
+- [x] 109 tests passing, coverage 86%, ruff clean, mypy pre-existing only
+
+**Summary:** 109 tests passing, coverage 86%. 2 commits on `feature/api-import-export`. P4 (Upload Slice) ready.
 
 ---
 
@@ -126,7 +138,7 @@
 |-------|-------|-----------|--------|
 | 1. Foundation | 3 | 3 | ✅ Completed |
 | 2. Auth Slice | 4 | 4 | ✅ Completed |
-| 3. Product Slice | 2 | 0 | ❌ Not started |
+| 3. Product Slice | 2 | 2 | ✅ Completed |
 | 4. Upload Slice | 8 | 0 | ❌ Not started |
 | 5. Export Slice | 1 | 0 | ❌ Not started |
 | 6. Testing | 5 | 0 | ❌ Not started |
