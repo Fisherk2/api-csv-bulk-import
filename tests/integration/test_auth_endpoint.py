@@ -50,6 +50,24 @@ class TestTokenEndpoint:
         )
         assert response.status_code == 422
 
+    async def test_login_inactive_user(self, client, test_db_session):
+        """Inactive user must return 401 even with correct password."""
+        from app.infrastructure.auth.password_service import PasswordService
+        from app.infrastructure.database.models.user import UserModel
+
+        hashed = PasswordService.hash_password("test123")
+        user = UserModel(
+            username="inactiveuser", hashed_password=hashed, is_active=False
+        )
+        test_db_session.add(user)
+        await test_db_session.flush()
+
+        response = await client.post(
+            "/token",
+            data={"username": "inactiveuser", "password": "test123"},
+        )
+        assert response.status_code == 401
+
 
 @pytest.mark.asyncio
 class TestHealthEndpoint:
