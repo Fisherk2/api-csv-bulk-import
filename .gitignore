@@ -111,3 +111,14 @@ local.gradle
 *.override
 
 # Para añadir nueva regla: identificar categoría específica, evitar patrones demasiado amplios
+
+# AI Agent - Directorios y archivos temporales de herramientas AI
+.benchmarks/
+
+# IDE - Git message template personal
+.gitmessage
+
+# Package managers - Lock files de dependencias (solo raíz del proyecto)
+/bun.lock
+/package-lock.json
+/package.json
