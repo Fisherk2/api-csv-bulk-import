@@ -649,6 +649,13 @@ class IOrderRepository(ABC):
         ...
 
     @abstractmethod
+    async def get_by_customer(
+        self, customer_id: UUID, skip: int = 0, limit: int = 100
+    ) -> list[Order]:
+        """Retrieve orders for a specific customer with pagination."""
+        ...
+
+    @abstractmethod
     async def get_all(
         self, skip: int = 0, limit: int = 100
     ) -> list[Order]:
@@ -973,14 +980,16 @@ async def order_repository(test_db_session) -> OrderRepository:
 | 9 | `CustomerModel.email` is unique + indexed | Migration creates unique index on email |
 | 10 | `Order` + `OrderItem` entities are `@dataclass` with zero framework deps | `grep -r "from sqlalchemy\|from fastapi" app/core/entities/order.py` → empty |
 | 11 | `OrderModel` has FK to `customers.id`; `OrderItemModel` has FK to `orders.id` and `products.id` | Migration creates FK constraints |
-| 12 | `IOrderRepository` creates order + items in one transaction | Integration test: create order with items → both persist on success, both rollback on failure |
-| 13 | `ValidationService.validate_batch()` returns (valid, errors) tuple | Unit test: 5 valid + 3 invalid → 5 valid, 3 errors with row_numbers |
-| 14 | `ValidationService.validate_batch()` has zero external imports | `grep -r "from sqlalchemy\|from fastapi\|import http" app/core/services/validation_service.py` → empty |
-| 15 | CSV parser groups rows by customer_email into orders | Unit test: 4 rows (2 customers) → 2 orders, first with 3 items, second with 1 |
-| 16 | All migrations apply and rollback cleanly | `alembic upgrade head` → tables exist; `alembic downgrade -1` → tables removed |
-| 17 | `ruff check .` passes with zero errors | `ruff check .` |
-| 18 | `mypy .` passes with zero type errors | `mypy .` |
-| 19 | All P4 tests pass | `pytest -v` |
+| 12 | `IOrderRepository` includes `get_by_customer` for per-customer queries | Unit test: query orders by customer ID returns correct orders |
+| 13 | `IOrderRepository` creates order + items in one transaction | Integration test: create order with items → both persist on success, both rollback on failure |
+| 14 | `ValidationService.validate_batch()` returns (valid, errors) tuple | Unit test: 5 valid + 3 invalid → 5 valid, 3 errors with row_numbers |
+| 15 | `ValidationService.validate_batch()` has zero external imports | `grep -r "from sqlalchemy\|from fastapi\|import http" app/core/services/validation_service.py` → empty |
+| 16 | `OrderService.upload_orders` accepts `user_id` for audit | Unit test: verify logger receives user_id during upload |
+| 17 | CSV parser groups rows by customer_email into orders | Unit test: 4 rows (2 customers) → 2 orders, first with 3 items, second with 1 |
+| 18 | All migrations apply and rollback cleanly | `alembic upgrade head` → tables exist; `alembic downgrade -1` → tables removed |
+| 19 | `ruff check .` passes with zero errors | `ruff check .` |
+| 20 | `mypy .` passes with zero type errors | `mypy .` |
+| 21 | All P4 tests pass | `pytest -v` |
 
 ---
 
@@ -1119,7 +1128,7 @@ graph TD
 - [ ] `OrderItemModel` has: `id` (UUID PK), `order_id` (UUID FK → orders.id, indexed), `product_id` (UUID FK → products.id, indexed), `quantity` (Integer), `price` (Float), `created_at` (DateTime with timezone)
 - [ ] `OrderItemModel` has `relationship("order")` back_populates to OrderModel.items
 - [ ] Both models use `Mapped` and `mapped_column` (SQLAlchemy 2.x style)
-- [ ] `IOrderRepository` defines: `get_by_id`, `get_all`, `create`, `create_batch`
+- [ ] `IOrderRepository` defines: `get_by_id`, `get_by_customer`, `get_all`, `create`, `create_batch`
 - [ ] `IOrderRepository` uses `abc.ABC` with `@abstractmethod`
 - [ ] `OrderRepository` implements `IOrderRepository` accepting `AsyncSession` in constructor
 - [ ] `create()` persists both order header and items in one transaction (flush)
@@ -1179,11 +1188,10 @@ graph TD
 
 ### Task 15: Order Service
 
-**Description:** Create `OrderService` in `app/core/services/order_service.py`. This service orchestrates the upload flow: validate batch → separate valid/invalid → resolve customers (find by email or create) → validate product references → persist valid orders → return batch result.
+**Description:** Create `OrderService` in `app/core/services/order_service.py`. This service orchestrates the upload flow: validate batch → separate valid/invalid → resolve customers (find by email or create) → validate product references → persist valid orders → return batch result. The `user_id` parameter is used for audit/logging purposes only (authenticated JWT user who performed the upload).
 
 **Acceptance criteria:**
-- [ ] `OrderService.upload_orders(orders_data: list[OrderCreateSchema], ...) -> BatchUploadResponseSchema` orchestrates the full upload flow
-- [ ] Uses `ValidationService.validate_batch` for initial Pydantic validation
+- [ ] `OrderService.upload_orders(orders_data: list[OrderCreateSchema], user_id: UUID) -> BatchUploadResponseSchema` orchestrates the full upload flow
 - [ ] Resolves customers: for each unique `customer_id` in valid orders, looks up by UUID or email
 - [ ] Validates product references: collects all `product_id` values, queries `IProductRepository.get_by_ids()` once, reports missing products as validation errors
 - [ ] Uses `IOrderRepository.create_batch` for persistence of fully-valid orders
@@ -1196,6 +1204,7 @@ graph TD
 - [ ] `grep -r "from sqlalchemy\|from fastapi" app/core/services/order_service.py` — returns nothing
 - [ ] Unit test with mocked repositories: upload 5 valid + 3 invalid → 5 created, 3 errors reported
 - [ ] Unit test: upload with missing product_id → error reported, valid orders still succeed
+- [ ] Unit test: `user_id` is logged/recorded during upload (verify via spy/mock on logger)
 
 **Dependencies:** T13 (Order repository interface), T14 (Validation service), T07 (JWT auth — for user context)
 
@@ -1340,7 +1349,8 @@ sequenceDiagram
     Validation-->>Endpoint: (valid_orders, errors)
 
     alt Has valid orders
-        Endpoint->>Service: upload_orders(valid_orders)
+        Endpoint->>Service: upload_orders(valid_orders, user_id=current_user.id)
+        Note over Service: user_id is logged for audit
         
         Service->>CustRepo: get_by_ids(customer_uuids)
         CustRepo-->>DB: SELECT * FROM customers WHERE id IN (...)

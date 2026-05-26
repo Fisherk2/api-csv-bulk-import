@@ -36,7 +36,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P1: Foundation** | 1 day | 2026-05-26 | 2026-05-25 | ✅ Completed | Directories, configs, linters | ✅ Tools pass |
 | **P2: Auth Slice** | 2 days | 2026-05-27 | 2026-05-28 | ✅ Completed | DB → User → JWT → `/token` + `GET /` health | ✅ Auth works |
 | **P3: Product Slice** | 1 day | 2026-05-26 | 2026-05-26 | ✅ Completed | Product entity → model → repo | ✅ Tests pass |
-| **P4: Upload Slice** | 3 days | 2026-05-30 | 2026-06-01 | ❌ | Customer → Order → Validation → `/upload` | ✅ Upload works |
+| **P4: Upload Slice** | 3 days | 2026-05-30 | 2026-06-01 | 🔵 Spec Ready | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ❌ | `/export` with JSON/CSV | ✅ Full flow works |
 | **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | ❌ | Unit → Integration → E2E (≥80%) | ✅ Coverage ≥80% |
 | **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ❌ | Docker prod + CI/CD | — |
@@ -156,8 +156,8 @@ For project context, technical stack, architecture and conventions, refer to [AG
 ### Phase P4: Customer + Order Upload Slice
 
 > **Objective:** An authenticated user can send `POST /upload` with CSV/JSON and receive 200/207/422.
-> **Status:** 🟢 Spec Ready — `specs/P4-UPLOAD-SLICE.md` pending definition.
-> **Detailed plan:** [tasks/plan.md — Tasks 10-17](tasks/plan.md)
+> **Detailed spec:** [specs/P4-UPLOAD-SLICE.md](specs/P4-UPLOAD-SLICE.md) | **Detailed plan:** [tasks/plan.md — Tasks 10-17](tasks/plan.md)
+> **Status:** 🔵 Spec Ready — ready for implementation
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
@@ -169,6 +169,16 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | T15 | Spec-F2-007 | Order Service | `OrderService.upload_orders()` orchestrating validation + persistence | High | New: 1-2 | T13, T14 | 0/3 | ❌ |
 | T16 | *New* | CSV/JSON Parsers | `csv_parser.py`, `json_parser.py`, `file_utils.py` | High | New: 3-4 | T01 | 0/3 | ❌ |
 | T17 | Spec-F3-002 + Spec-F3-004 (partial) | `/upload` Endpoint | `POST /upload` with auth, validation, partial processing (200/207/422) | High | New: 2-3 | T07, T15, T16 | 0/8 | ❌ |
+
+**P4 Architectural Decisions:**
+- **AD-P4-01:** Customer deduplication by email — `ON CONFLICT (email) DO NOTHING`
+- **AD-P4-02:** Order + OrderItem as single aggregate — one transaction, `IOrderRepository` handles both
+- **AD-P4-03:** CSV → normalized pipeline — flat rows grouped by `customer_email` into orders
+- **AD-P4-04:** `ValidationService` is a pure domain service — ZERO external imports
+- **AD-P4-05:** `OrderService` depends on repository interfaces only (DIP)
+- **AD-P4-06:** Foreign key validation via single `get_by_ids()` batch query
+- **AD-P4-07:** Response codes: 200 (all valid), 207 (partial), 422 (all invalid), 413 (batch too large)
+- **AD-P4-08:** Rate limiting deferred to P7 — infrastructure concern
 
 **P4 Notes:**
 - T16 (CSV/JSON Parsers) is new — not in the original specs, but essential for `/upload`.

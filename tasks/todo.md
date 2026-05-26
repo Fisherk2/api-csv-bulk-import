@@ -70,7 +70,9 @@
 
 ---
 
-## Phase 4: Customer + Order Upload Slice 🟢 Ready for Specs
+## Phase 4: Customer + Order Upload Slice 🔵 Spec Ready — pending implementation
+
+> **Spec:** [specs/P4-UPLOAD-SLICE.md](../specs/P4-UPLOAD-SLICE.md)
 
 - [ ] **T10** — Customer Entity + Schemas — `Customer` entity, `CustomerCreateSchema`, `CustomerResponseSchema`
 - [ ] **T11** — Customer Model + Repository — `CustomerModel`, `ICustomerRepository`, `CustomerRepository`, migration
