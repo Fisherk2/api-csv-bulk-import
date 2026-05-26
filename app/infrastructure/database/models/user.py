@@ -7,9 +7,9 @@ bcrypt-hashed password, and activity/timestamp tracking.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, String, func
+from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import Base
@@ -23,7 +23,6 @@ class UserModel(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         primary_key=True,
         default=uuid.uuid4,
-        server_default=func.gen_random_uuid(),
     )
 
     username: Mapped[str] = mapped_column(
@@ -41,14 +40,12 @@ class UserModel(Base):
     is_active: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
-        server_default=func.true(),
         nullable=False,
     )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=func.now,
-        server_default=func.now(),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
