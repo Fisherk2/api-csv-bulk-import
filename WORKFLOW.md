@@ -35,7 +35,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 |-------|----------|-------|-----|--------|----------------|------------|
 | **P1: Foundation** | 1 day | 2026-05-26 | 2026-05-25 | ✅ Completed | Directories, configs, linters | ✅ Tools pass |
 | **P2: Auth Slice** | 2 days | 2026-05-27 | 2026-05-28 | ✅ Completed | DB → User → JWT → `/token` + `GET /` health | ✅ Auth works |
-| **P3: Product Slice** | 1 day | 2026-05-29 | 2026-05-29 | ❌ | Product entity → model → repo | — |
+| **P3: Product Slice** | 1 day | 2026-05-29 | 2026-05-29 | 🟢 Spec Ready | Product entity → model → repo | — |
 | **P4: Upload Slice** | 3 days | 2026-05-30 | 2026-06-01 | ❌ | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ❌ | `/export` with JSON/CSV | ✅ Full flow works |
 | **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | ❌ | Unit → Integration → E2E (≥80%) | ✅ Coverage ≥80% |
@@ -120,8 +120,9 @@ For project context, technical stack, architecture and conventions, refer to [AG
 ### Phase P3: Product Vertical Slice
 
 > **Objective:** Product entity with repository — the simplest domain to validate the DDD pattern.
-> **Status:** 🟡 Ready for Specs — write `specs/P3-PRODUCT-SLICE.md` with tasks T08-T09.
+> **Status:** 🟢 Spec Ready — `specs/P3-PRODUCT-SLICE.md` written with T08-T09.
 > **Detailed plan:** [tasks/plan.md — Tasks 8-9](tasks/plan.md)
+> **Detailed spec:** [specs/P3-PRODUCT-SLICE.md](specs/P3-PRODUCT-SLICE.md)
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
