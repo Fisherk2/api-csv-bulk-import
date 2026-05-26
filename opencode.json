@@ -1,15 +1,15 @@
 {
   "$schema": "https://opencode.ai/config.json",
 
-  "model": "opencode-go/kimi-k2.6",
-  "small_model": "openrouter/z-ai/glm-4.5-air:free",
+  "model": "opencode-go/qwen3.7-max",
+  "small_model": "openrouter/openrouter/free",
 
   "agent": {
     "huitzilopochtli": {
       "model": "opencode-go/qwen3.6-plus"
     },
     "quetzalcoatl": {
-      "model": "opencode-go/glm-5.1"
+      "model": "opencode-go/deepseek-v4-flash"
     },
     "tezcatlipoca": {
       "model": "opencode-go/deepseek-v4-pro"
@@ -24,7 +24,7 @@
       "hidden": true
     },
     "explore": {
-      "model": "opencode-go/deepseek-v4-flash"
+      "model": "openrouter/z-ai/glm-4.5-air:free"
     },
     "general": {
       "model": "opencode-go/minimax-m2.5"
@@ -34,7 +34,8 @@
   "instructions": [
     "CONTRIBUTING.md",
     "WORKFLOW.md",
-    "SPEC.md"
+    "SPEC.md",
+    "docs/CODE-STYLE.md"
   ],
 
   "permission": {
