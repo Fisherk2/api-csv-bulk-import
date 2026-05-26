@@ -38,3 +38,16 @@ class TestProductModelStructure:
         assert required.issubset(columns), (
             f"Missing columns: {required - columns}"
         )
+
+    def test_product_model_repr(self) -> None:
+        """ProductModel __repr__ must include id and name."""
+        import uuid
+
+        from app.infrastructure.database.models.product import ProductModel
+
+        model = ProductModel(
+            id=uuid.uuid4(), name="Test", price=1.0, stock=1
+        )
+        rep = repr(model)
+        assert "ProductModel" in rep
+        assert "Test" in rep

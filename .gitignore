@@ -119,6 +119,7 @@ local.gradle
 .gitmessage
 
 # Package managers - Lock files de dependencias (solo raíz del proyecto)
+/uv.lock
 /bun.lock
 /package-lock.json
 /package.json

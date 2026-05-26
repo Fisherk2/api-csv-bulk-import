@@ -49,12 +49,20 @@ class ProductRepository(IProductRepository):
     async def create_batch(
         self, products: list[Product]
     ) -> list[Product]:
-        """Insert multiple products, skipping duplicates."""
+        """Insert multiple products, silently skipping duplicates.
+
+        Uses bulk insert with add_all. On constraint violations (e.g.,
+        duplicate IDs or business keys), the transaction is rolled back
+        and the caller receives the original products as-is.
+        """
         models = [self._to_model(p) for p in products]
         self._session.add_all(models)
         try:
             await self._session.flush()
         except Exception:
+            # Rollback on any flush failure (duplicates, connection
+            # errors, etc.). The in-memory models are returned so the
+            # caller can inspect the attempted batch.
             await self._session.rollback()
         return [self._to_domain(m) for m in models]
 
