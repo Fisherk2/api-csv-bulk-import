@@ -6,12 +6,13 @@ all required sections per the project's code style and testing conventions.
 
 import tomllib
 from pathlib import Path
+from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = PROJECT_ROOT / "pyproject.toml"
 
 
-def _load_pyproject() -> dict:
+def _load_pyproject() -> dict[str, Any]:
     """Load pyproject.toml and return the parsed dict."""
     return tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
 
