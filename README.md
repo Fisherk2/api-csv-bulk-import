@@ -1,21 +1,21 @@
 # API de Importación/Exportación Masiva con Validación Estricta
 
-> REST API built with FastAPI for bulk import/export of relational data with strict Pydantic validation, partial processing, JWT authentication, and RFC 7807 error reporting.
+> API REST construida con FastAPI para importación/exportación masiva de datos relacionales con validación estricta de Pydantic, procesamiento parcial, autenticación JWT y reporte de errores RFC 7807.
 
-## Quick Start
+## Inicio Rápido
 
 ```bash
-# Clone the repository
+# Clonar el repositorio
 git clone https://github.com/Fisherk2/api-csv-bulk-import.git
 cd api-csv-bulk-import
 
-# Copy environment variables
+# Copiar variables de entorno
 cp .env.example .env
 
-# Start the full stack
+# Iniciar el stack completo
 docker-compose up
 
-# Run tests
+# Ejecutar pruebas
 pytest --cov=app
 ```
 
@@ -32,26 +32,26 @@ pytest --cov=app
 
 ## API Endpoints
 
-| Method | Path | Description |
+| Método | Ruta | Descripción |
 |--------|------|-------------|
-| `POST` | `/token` | Obtain JWT token (OAuth2 Password Flow) |
-| `POST` | `/upload` | Import data in CSV or JSON format |
-| `GET` | `/export` | Export data in CSV or JSON format |
+| `POST` | `/token` | Obtener token JWT (OAuth2 Password Flow) |
+| `POST` | `/upload` | Importar datos en formato CSV o JSON |
+| `GET` | `/export` | Exportar datos en formato CSV o JSON |
 
-## Documentation
+## Documentación
 
-- [SPEC.md](SPEC.md) — Full project specification
-- [WORKFLOW.md](WORKFLOW.md) — Implementation tracking and phase progress
-- [AGENTS.md](AGENTS.md) — Quick reference and boundaries
-- [Architecture & Design](docs/ARCHITECTURE.md) — Patterns, diagrams, folder structure
-- [Domain & Requirements](docs/DOMAIN.md) — Entities, requirements, system boundaries
-- [Code Style & Conventions](docs/CODE-STYLE.md) — Naming, SOLID, file rules
-- [Testing Strategy](docs/TESTING.md) — Test phases, frameworks, fixtures, examples
-- [Security & Error Handling](docs/SECURITY.md) — Validation, HTTP responses, rate limiting
+- [SPEC.md](SPEC.md) — Especificación completa del proyecto
+- [WORKFLOW.md](WORKFLOW.md) — Seguimiento de implementación y progreso por fases
+- [AGENTS.md](AGENTS.md) — Referencia rápida y límites
+- [Architecture & Design](docs/ARCHITECTURE.md) — Patrones, diagramas, estructura de carpetas
+- [Domain & Requirements](docs/DOMAIN.md) — Entidades, requisitos, límites del sistema
+- [Code Style & Conventions](docs/CODE-STYLE.md) — Nomenclatura, SOLID, reglas de archivos
+- [Testing Strategy](docs/TESTING.md) — Fases de prueba, frameworks, fixtures, ejemplos
+- [Security & Error Handling](docs/SECURITY.md) — Validación, respuestas HTTP, rate limiting
 
-## Status
+## Estado
 
-🟡 **En Especificación** — Project is in the specification phase. No implementation yet.
+🟡 **En Especificación** — El proyecto está en fase de especificación. Aún no hay implementación.
 
 ## License
 

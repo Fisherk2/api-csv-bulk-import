@@ -1,7 +1,7 @@
-# API de Importación/Exportación Masiva con Validación Estricta
+# Bulk Import/Export API with Strict Validation
 
-**Versión:** 1.0.0 | **Estado:** En Especificación | **Metodología:** Spec-Driven Development (SDD)
-**Repositorio:** https://github.com/Fisherk2/api-csv-bulk-import/
+**Version:** 1.0.0 | **Status:** In Specification | **Methodology:** Spec-Driven Development (SDD)
+**Repository:** https://github.com/Fisherk2/api-csv-bulk-import/
 
 ## Quick Reference
 
