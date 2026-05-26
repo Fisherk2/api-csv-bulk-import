@@ -116,13 +116,14 @@ class TestUserResponseSchema:
 
     def test_user_response_has_required_fields(self) -> None:
         """UserResponseSchema must include id, username, is_active, created_at."""
-        from datetime import datetime
+        from datetime import datetime, timezone
+
         from uuid import uuid4
 
         from app.schemas.user import UserResponseSchema
 
         uid = uuid4()
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         schema = UserResponseSchema(
             id=uid, username="test", is_active=True, created_at=now
         )
