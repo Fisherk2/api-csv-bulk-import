@@ -5,8 +5,8 @@ depend on infrastructure concerns like SQLAlchemy, FastAPI, or HTTP libraries.
 """
 
 import ast
+import sys
 from pathlib import Path
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CORE_DIR = PROJECT_ROOT / "app" / "core"
@@ -67,7 +67,7 @@ class TestCoreLayerImports:
                 rel = py_file.relative_to(PROJECT_ROOT)
                 violations.append(f"{rel} imports sqlalchemy")
         assert not violations, (
-            f"SQLAlchemy imports found in domain layer:\n"
+            "SQLAlchemy imports found in domain layer:\n"
             + "\n".join(violations)
         )
 
@@ -80,7 +80,7 @@ class TestCoreLayerImports:
                 rel = py_file.relative_to(PROJECT_ROOT)
                 violations.append(f"{rel} imports fastapi")
         assert not violations, (
-            f"FastAPI imports found in domain layer:\n"
+            "FastAPI imports found in domain layer:\n"
             + "\n".join(violations)
         )
 
@@ -96,7 +96,7 @@ class TestCoreLayerImports:
                     f"{rel} imports: {sorted(forbidden_found)}"
                 )
         assert not violations, (
-            f"Forbidden external imports in domain layer:\n"
+            "Forbidden external imports in domain layer:\n"
             + "\n".join(violations)
         )
 
@@ -106,47 +106,12 @@ class TestCoreLayerImports:
         This validates that no third-party packages sneak into the domain layer
         through indirect imports or typo-level imports.
         """
-        # Standard library top-level modules (Python 3.12)
-        stdlib_top_level = {
-            "abc", "aifc", "argparse", "array", "ast", "asynchat", "asyncio",
-            "asyncore", "atexit", "audioop", "base64", "bdb", "binascii",
-            "binhex", "bisect", "builtins", "bz2", "calendar", "cgi",
-            "cgitb", "chunk", "cmath", "cmd", "code", "codecs",
-            "codeop", "collections", "colorsys", "compileall", "concurrent",
-            "configparser", "contextlib", "contextvars", "copy", "copyreg",
-            "cProfile", "crypt", "csv", "ctypes", "curses", "dataclasses",
-            "datetime", "dbm", "decimal", "difflib", "dis", "distutils",
-            "doctest", "email", "encodings", "enum", "errno", "faulthandler",
-            "fcntl", "filecmp", "fileinput", "fnmatch", "formatter",
-            "fractions", "ftplib", "functools", "gc", "getopt", "getpass",
-            "gettext", "glob", "graphlib", "grp", "gzip", "hashlib",
-            "heapq", "hmac", "html", "http", "idlelib", "imaplib", "imghdr",
-            "imp", "importlib", "inspect", "io", "ipaddress", "itertools",
-            "json", "keyword", "lib2to3", "linecache", "locale", "logging",
-            "lzma", "mailbox", "mailcap", "marshal", "math", "mimetypes",
-            "mmap", "modulefinder", "multiprocessing", "netrc", "nis",
-            "nntplib", "numbers", "operator", "optparse", "os", "ossaudiodev",
-            "parser", "pathlib", "pdb", "pickle", "pickletools", "pipes",
-            "pkgutil", "platform", "plistlib", "poplib", "posix", "posixpath",
-            "pprint", "profile", "pstats", "pty", "pwd", "py_compile",
-            "pyclbr", "pydoc", "queue", "quopri", "random", "re",
-            "readline", "reprlib", "resource", "rlcompleter", "runpy",
-            "sched", "secrets", "select", "selectors", "shelve", "shlex",
-            "shutil", "signal", "site", "smtpd", "smtplib", "sndhdr",
-            "socket", "socketserver", "spwd", "sqlite3", "ssl", "stat",
-            "statistics", "string", "stringprep", "struct", "subprocess",
-            "sunau", "symtable", "sys", "sysconfig", "syslog", "tabnanny",
-            "tarfile", "telnetlib", "tempfile", "termios", "textwrap",
-            "threading", "time", "timeit", "tkinter", "token", "tokenize",
-            "trace", "traceback", "tracemalloc", "tty", "turtle",
-            "turtledemo", "types", "typing", "unicodedata", "unittest",
-            "urllib", "uu", "uuid", "venv", "warnings", "wave", "weakref",
-            "webbrowser", "winreg", "winsound", "wsgiref", "xdrlib", "xml",
-            "xmlrpc", "zipapp", "zipfile", "zipimport", "zlib", "_thread",
-        }
+        # Standard library top-level modules (detected at runtime via sys)
+        # sys.stdlib_module_names is available since Python 3.10
+        stdlib_top_level = set(sys.stdlib_module_names)
 
         # Our own packages that core may reference
-        own_packages = {"app", "core"}
+        own_packages = {"core"}
         allowed = stdlib_top_level | own_packages | {"__future__"}
 
         violations: list[str] = []

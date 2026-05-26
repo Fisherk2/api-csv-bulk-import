@@ -7,7 +7,6 @@ variables with placeholder values (no real secrets).
 import re
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ENV_EXAMPLE_PATH = PROJECT_ROOT / ".env.example"
 
@@ -116,7 +115,7 @@ class TestEnvExample:
     def test_variables_have_comments(self) -> None:
         """.env.example should have comments explaining each variable."""
         content = ENV_EXAMPLE_PATH.read_text(encoding="utf-8")
-        comment_lines = [l for l in content.splitlines() if l.strip().startswith("#")]
+        comment_lines = [ln for ln in content.splitlines() if ln.strip().startswith("#")]
         assert len(comment_lines) >= 5, (
             f".env.example has only {len(comment_lines)} comment lines. "
             "Expected descriptive comments for variables."

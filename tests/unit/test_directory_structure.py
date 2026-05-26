@@ -6,7 +6,6 @@ and that every package has a proper __init__.py with a docstring.
 
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 # Directories that MUST exist (from docs/ARCHITECTURE.md)
@@ -53,10 +52,10 @@ class TestDirectoryStructure:
         Excludes directories that are not Python packages:
         - migrations/versions/ stores Alembic migration files, not Python modules.
         """
-        NON_PACKAGE_DIRS = {"migrations/versions"}
+        non_package_dirs = {"migrations/versions"}
         failures: list[str] = []
         for dir_rel in REQUIRED_DIRECTORIES:
-            if dir_rel in NON_PACKAGE_DIRS:
+            if dir_rel in non_package_dirs:
                 continue
             init_file = PROJECT_ROOT / dir_rel / "__init__.py"
             if not init_file.is_file():
@@ -67,7 +66,7 @@ class TestDirectoryStructure:
                 failures.append(f"Empty __init__.py (no docstring): {dir_rel}")
 
         assert not failures, (
-            f"__init__.py issues:\n" + "\n".join(failures)
+            "__init__.py issues:\n" + "\n".join(failures)
         )
 
     def test_migrations_versions_has_gitkeep(self) -> None:

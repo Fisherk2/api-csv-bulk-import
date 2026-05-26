@@ -3,6 +3,10 @@
 
 .PHONY: help install dev lint format type-check test test-cov run migrate clean
 
+# Default values (override with: make dev HOST=127.0.0.1 PORT=9000)
+HOST ?= 0.0.0.0
+PORT ?= 8000
+
 # Default target
 help: ## Show this help message
 	@echo "Available targets:"
