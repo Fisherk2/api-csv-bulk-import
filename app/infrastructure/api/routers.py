@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.infrastructure.api.endpoints import auth
+from app.infrastructure.api.endpoints import auth, upload
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
+api_router.include_router(upload.router)
