@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.core.entities.order import Order
 from app.core.repositories.order_repository import IOrderRepository
 from app.schemas.order import OrderResponseSchema
 
@@ -43,7 +44,7 @@ class ExportService:
 
     async def export_orders_raw(
         self, skip: int = 0, limit: int = 100
-    ) -> list[Any]:
+    ) -> list[Order]:
         """Export orders as domain entities (for CSV path).
 
         Args:
