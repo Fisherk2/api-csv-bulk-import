@@ -9,6 +9,7 @@ from __future__ import annotations
 # Ensure all model modules are loaded so Base.metadata includes all tables.
 # Imported here to register tables with SQLAlchemy's declarative base.
 import app.infrastructure.database.models.customer  # noqa: F401
+import app.infrastructure.database.models.order  # noqa: F401
 import app.infrastructure.database.models.product  # noqa: F401
 
 import pytest
