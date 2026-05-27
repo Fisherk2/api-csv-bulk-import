@@ -38,9 +38,9 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P3: Product Slice** | 1 day | 2026-05-26 | 2026-05-26 | ✅ Completed | Product entity → model → repo | ✅ Tests pass |
 | **P4: Upload Slice** | 3 days | 2026-05-28 | 2026-05-26 | ✅ Completed | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ✅ Completed | `/export` with JSON/CSV | ✅ Full flow works |
-| **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | 🔵 Ready for Specs | Unit → Integration → E2E (≥80%) | — |
+| **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | 🟡 Spec Defined | Unit → Integration → E2E (≥80%) | — |
 | **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ❌ | Docker prod + CI/CD | — |
-| **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ❌ | Docs, user guide, retrospective | ✅ All done |
+| **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ❌ | Docs, user guide, retrospective | — |
 
 ---
 
@@ -253,22 +253,36 @@ For project context, technical stack, architecture and conventions, refer to [AG
 
 ### Phase P6: Testing
 
-> **Objective:** Coverage ≥ 80%, all tests passing.
-> **Status:** 🔵 Ready for Specs
-> **Detailed plan:** [tasks/plan.md — Tasks 19-23](tasks/plan.md)
+> **Objective:** Formalize the test suite — verify all quality gates, close coverage gaps, add E2E tests (ASGI + Docker smoke).
+> **Status:** 🟡 Spec Defined (Ready for Implementation)
+> **Detailed spec:** [specs/P6-TESTING-SLICE.md](specs/P6-TESTING-SLICE.md) | **Detailed plan:** [tasks/plan.md — Tasks 19-23](tasks/plan.md)
+
+**P6 Architectural Decisions:**
+- **AD-P6-01:** Formal review of T19–T22 against original plan.md acceptance criteria — tests were built during P2–P5
+- **AD-P6-02:** Dual E2E approach — 8-10 fast ASGI+SQLite tests + 1-2 Docker smoke tests with real PostgreSQL
+- **AD-P6-03:** Two E2E files: `test_full_flow.py` (ASGI) + `test_smoke_docker.py` (Docker)
+- **AD-P6-04:** Existing test quality review — verify acceptance criteria, don't rewrite working code
+- **AD-P6-05:** Full coverage gap closure — target all 49 uncovered lines, document unreachable exceptions
+- **AD-P6-06:** No new dependencies — reuse existing pytest, httpx, pytest-asyncio, pytest-cov
+
+**P6 Discovery:** T19–T22 tests were built alongside P2–P5 during vertical slice implementation (not deferred to P6). Current state: 234 tests, 94.07% coverage. Only T23 (E2E) is truly new. P6 focuses on formal review, E2E creation, and closing the 49 uncovered lines.
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T19 | Spec-F4-001 | Unit Tests — Validation + Schemas | `test_validation_service.py`, `test_schemas.py` | High | New: 2-3 | T14, T06, T08, T10, T12 | 0/5 | ❌ |
-| T20 | Spec-F4-002 | Unit Tests — Services + Repos | `test_order_service.py`, `test_repositories.py` | High | New: 2-3 | T15, T09, T11, T13 | 0/5 | ❌ |
-| T21 | Spec-F4-003 | Integration Tests — `/upload` | `test_upload_endpoint.py` | High | New: 1-2 | T17, T07 | 0/6 | ❌ |
-| T22 | Spec-F4-004 | Integration Tests — `/export` | `test_export_endpoint.py` | High | New: 1 | T18 | 0/4 | ❌ |
-| T23 | Spec-F4-005 | E2E Tests — Full Flow | `test_full_flow.py` (login → upload → export) | High | New: 1 | T07, T17, T18 | 0/6 | ❌ |
+| T19 | Spec-F4-001 | Unit Tests — Validation + Schemas | **Built during P2–P4** — 73 tests across 7 files. Formal review against plan.md criteria. | High | Review existing | T14, T06, T08, T10, T12 | 4/4 ✅ | 🟡 Review |
+| T20 | Spec-F4-002 | Unit Tests — Services + Repos | **Built during P3–P5** — 35 tests across 4 files. Add 1 FK test + repo error recovery. | High | Modify: 4 | T15, T09, T11, T13 | 4/5 | 🟡 Review |
+| T21 | Spec-F4-003 | Integration Tests — `/upload` | **Built during P4** — 9 tests. Add 6 error path tests. | High | Modify: 1 | T17, T07 | 2/6 | 🟡 Review |
+| T22 | Spec-F4-004 | Integration Tests — `/export` | **Built during P5** — 9 tests. All criteria met. | High | None | T18 | 4/4 ✅ | 🟡 Review |
+| T23 | Spec-F4-005 | E2E Tests — Full Flow + Docker Smoke | **New** — 8-10 ASGI E2E tests (`test_full_flow.py`) + 1-2 Docker smoke tests (`test_smoke_docker.py`) | High | New: 2 | T07, T17, T18 | 0/12 | ❌ |
 
 ### ✅ Checkpoint P6: Testing Complete
 
-- [ ] `pytest` — all tests pass
-- [ ] `pytest --cov=app` — coverage ≥ 80%
+- [ ] Formal review: T19, T20, T21, T22 acceptance criteria verified against plan.md
+- [ ] `pytest tests/e2e/test_full_flow.py -v` — all 8-10 ASGI E2E tests pass
+- [ ] `docker-compose up -d && pytest tests/e2e/test_smoke_docker.py -v -m docker` — smoke tests pass
+- [ ] Coverage gap closure: all 49 uncovered lines addressed (tests, Docker smoke, or documented exceptions)
+- [ ] `pytest` — all tests pass (≥254)
+- [ ] `pytest --cov=app` — coverage ≥ 80% (target: maintain ≥ 94%)
 - [ ] `ruff check .` — zero errors
 - [ ] `mypy .` — zero type errors
 - [ ] **Human review before proceeding**

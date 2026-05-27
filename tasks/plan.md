@@ -704,143 +704,199 @@ graph TD
 
 ### Phase 6: Testing
 
+> **⚠️ REVISED 2026-05-27:** T19–T22 tests were built during P2–P5 (not deferred to P6). This plan has been updated to reflect reality: formal review + gap closure + E2E creation. See [specs/P6-TESTING-SLICE.md](../specs/P6-TESTING-SLICE.md) for full details.
+
 ---
 
-#### Task 19: Unit Tests — Validation Service + Schemas
+#### Task 19: Unit Tests — Validation Service + Schemas (FORMAL REVIEW)
 
-**Description:** Create unit tests for `ValidationService` and all Pydantic schemas in `tests/unit/test_validation_service.py` and `tests/unit/test_schemas.py`. Test validation rules, boundary conditions, and RFC 7807 error format.
+**Description:** **Built during P2–P4** — 73 tests across 7 files (`test_validation_service.py`, `test_*_schemas.py`). Formally review existing tests against original acceptance criteria from plan.md. Document which criteria are met. No new tests needed — all criteria already covered.
 
 **Acceptance criteria:**
-- [ ] `test_validation_service.py` covers: valid batch, partial batch, all-invalid batch, empty batch, edge cases
-- [ ] `test_schemas.py` covers: `OrderCreateSchema`, `OrderItemCreateSchema`, `ProductCreateSchema`, `CustomerCreateSchema`, `UserCreateSchema`, `BatchUploadRequestSchema`, `ProblemDetailSchema`
-- [ ] Tests validate: required fields, min/max length, type coercion, custom validators (whitespace stripping)
-- [ ] Tests verify RFC 7807 error format in validation errors
-- [ ] All tests pass with `pytest tests/unit/`
+- [x] `test_validation_service.py` covers: valid batch, partial batch, all-invalid batch, empty batch, edge cases (6 tests)
+- [x] All schema test files cover: `OrderCreateSchema`, `OrderItemCreateSchema`, `ProductCreateSchema`, `CustomerCreateSchema`, `UserCreateSchema`, `BatchUploadRequestSchema`, `ProblemDetailSchema`
+- [x] Tests validate: required fields, min/max length, type coercion, custom validators (whitespace stripping)
+- [x] Tests verify RFC 7807 error format in validation errors
+- [ ] Formal review documented and signed off in spec
 
 **Verification:**
-- [ ] `pytest tests/unit/test_validation_service.py -v` — all pass
-- [ ] `pytest tests/unit/test_schemas.py -v` — all pass
-- [ ] Coverage for `app/core/services/validation_service.py` ≥ 90%
+- [x] `pytest tests/unit/test_validation_service.py -v` — all 6 pass
+- [x] `pytest tests/unit/test_*_schemas.py -v` — all schema tests pass (73 total)
+- [ ] Review against plan.md criteria complete and documented in spec
+- [x] Coverage for `app/core/services/validation_service.py` ≥ 90%
 
-**Dependencies:** Task 14 (Validation service), Task 6, 8, 10, 12 (schemas)
+**Dependencies:** Task 14 (Validation service ✅), Task 6, 8, 10, 12 (schemas ✅)
 
 **Files likely touched:**
-- `tests/unit/test_validation_service.py` (new)
-- `tests/unit/test_schemas.py` (new)
-- `tests/conftest.py` (update — add shared fixtures)
+- **None** — review-only (existing files verified)
 
-**Estimated scope:** Medium (2-3 files)
+**Estimated scope:** XS (review + document, 0 files touched)
 
 ---
 
-#### Task 20: Unit Tests — Order Service + Repositories
+#### Task 20: Unit Tests — Order Service + Repositories (FORMAL REVIEW + 1 GAP)
 
-**Description:** Create unit tests for `OrderService` and repository implementations in `tests/unit/test_order_service.py` and `tests/unit/test_repositories.py`. Use `pytest-mock` to mock repository interfaces.
+**Description:** **Built during P3–P5** — 35 tests across 4 files (`test_order_service.py`, `test_*_repository.py`). Formally review existing tests. **One gap found:** `test_upload_all_fk_invalid` missing (line 131 uncovered). Add it. Also add repository error recovery tests for uncovered paths in `order_repository.py`, `customer_repository.py`, `product_repository.py`.
 
 **Acceptance criteria:**
-- [ ] `test_order_service.py` covers: upload valid batch, upload partial batch, upload all-invalid, batch size limit
-- [ ] `test_repositories.py` covers: `ProductRepository`, `CustomerRepository`, `OrderRepository` CRUD operations
-- [ ] All service tests use mocked repositories (no real DB)
-- [ ] Repository tests use in-memory SQLite database
-- [ ] All tests pass with `pytest tests/unit/`
+- [x] `test_order_service.py` covers: upload valid batch, upload partial batch, batch size limit (3 tests)
+- [ ] `test_order_service.py` covers: upload all-FK-invalid → returns errors (NEW — 1 test to add)
+- [x] Repository tests cover: `ProductRepository`, `CustomerRepository`, `OrderRepository` CRUD operations
+- [ ] Repository tests cover: error recovery paths (NEW — ~4 tests to add for uncovered rollback/logging lines)
+- [x] Repository tests use in-memory SQLite database
+- [ ] All new tests pass with `pytest tests/unit/`
 
 **Verification:**
-- [ ] `pytest tests/unit/test_order_service.py -v` — all pass
-- [ ] `pytest tests/unit/test_repositories.py -v` — all pass
-- [ ] Coverage for `app/core/services/order_service.py` ≥ 90%
+- [x] `pytest tests/unit/test_order_service.py -v` — existing 3 pass
+- [ ] `pytest tests/unit/test_order_service.py::test_upload_all_fk_invalid -v` — new test passes
+- [x] `pytest tests/unit/test_*_repository.py -v` — existing repo tests pass
+- [ ] `pytest tests/unit/test_*_repository.py -v -k "error"` — new error recovery tests pass
+- [x] Coverage for `app/core/services/order_service.py` ≥ 90%
 
-**Dependencies:** Task 15 (Order service), Task 9, 11, 13 (repositories)
+**Dependencies:** Task 15 (Order service ✅), Task 9, 11, 13 (repositories ✅)
 
 **Files likely touched:**
-- `tests/unit/test_order_service.py` (new)
-- `tests/unit/test_repositories.py` (new)
-- `tests/conftest.py` (update — add DB fixtures)
+- `tests/unit/test_order_service.py` (modify — add 1 test)
+- `tests/unit/test_order_repository.py` (modify — add error recovery tests)
+- `tests/unit/test_customer_repository.py` (modify — add error recovery tests)
+- `tests/unit/test_product_repository.py` (modify — add error recovery tests)
 
-**Estimated scope:** Medium (2-3 files)
+**Estimated scope:** Small (modify 4 files, ~5 new tests)
 
 ---
 
-#### Task 21: Integration Tests — /upload Endpoint
+#### Task 21: Integration Tests — /upload Endpoint (FORMAL REVIEW + 6 GAPS)
 
-**Description:** Create integration tests for the `/upload` endpoint in `tests/integration/test_upload_endpoint.py`. Test the full request/response cycle including authentication, validation, and persistence.
+**Description:** **Built during P4** — 9 tests in `test_upload_endpoint.py`. Formally review existing tests. **Six gaps found:** invalid JSON body (400), orders-not-list (400), JSON batch too large (413), CSV file too large (413), malformed CSV (400), CSV batch too large (413). Add them.
 
 **Acceptance criteria:**
-- [ ] Tests cover: valid upload (200), partial upload (207), all-invalid (422), unauthorized (401), batch size exceeded (413), invalid format (400)
-- [ ] Tests use `TestClient` with in-memory SQLite database
-- [ ] Tests verify data is persisted correctly in the database
-- [ ] Tests verify RFC 7807 error format in 207 and 422 responses
-- [ ] All tests pass with `pytest tests/integration/`
+- [x] Tests cover: valid upload (200), partial upload (207), all-invalid (422), unauthorized (401)
+- [ ] Tests cover: JSON batch too large → 413 (NEW — line 74)
+- [ ] Tests cover: CSV batch too large → 413 (NEW — line 130)
+- [ ] Tests cover: CSV file too large → 413 (NEW — line 113)
+- [ ] Tests cover: invalid JSON body → 400 (NEW — lines 48-49)
+- [ ] Tests cover: orders not a list → 400 (NEW — line 62)
+- [ ] Tests cover: malformed CSV → 400 (NEW — lines 122-123)
+- [x] Tests use in-memory SQLite database via `client` fixture
+- [x] Tests verify data is persisted correctly in the database
+- [x] Tests verify RFC 7807 error format in 207 and 422 responses
+- [ ] All new tests pass with `pytest tests/integration/`
 
 **Verification:**
-- [ ] `pytest tests/integration/test_upload_endpoint.py -v` — all pass
-- [ ] Coverage for `app/infrastructure/api/endpoints/upload.py` ≥ 80%
+- [x] `pytest tests/integration/test_upload_endpoint.py -v` — existing 9 pass
+- [ ] `pytest tests/integration/test_upload_endpoint.py -v -k "invalid_json\|orders_not_list\|batch_too_large\|file_too_large\|malformed"` — new 6 pass
+- [x] Coverage for `app/infrastructure/api/endpoints/upload.py` ≥ 87% (currently, target ≥ 95% with new tests)
 
-**Dependencies:** Task 17 (/upload endpoint), Task 7 (JWT auth)
+**Dependencies:** Task 17 (/upload endpoint ✅), Task 7 (JWT auth ✅)
 
 **Files likely touched:**
-- `tests/integration/test_upload_endpoint.py` (new)
-- `tests/conftest.py` (update — add TestClient fixtures)
+- `tests/integration/test_upload_endpoint.py` (modify — add 6 tests)
 
-**Estimated scope:** Medium (1-2 files)
+**Estimated scope:** Small (modify 1 file, 6 new tests)
 
 ---
 
-#### Task 22: Integration Tests — /export Endpoint
+#### Task 22: Integration Tests — /export Endpoint (FORMAL REVIEW)
 
-**Description:** Create integration tests for the `/export` endpoint in `tests/integration/test_export_endpoint.py`. Test JSON and CSV export formats, authentication, and data integrity.
+**Description:** **Built during P5** — 9 tests in `test_export_endpoint.py`. Formally review existing tests against acceptance criteria. **All criteria met** — no gaps found. No new tests needed.
 
 **Acceptance criteria:**
-- [ ] Tests cover: JSON export (200), CSV export (200), unauthorized (401), empty data (200 with empty list)
-- [ ] Tests verify data integrity: uploaded data matches exported data
-- [ ] Tests verify CSV format has correct headers
-- [ ] All tests pass with `pytest tests/integration/`
+- [x] Tests cover: JSON export (200), CSV export (200), unauthorized (401), empty data (200 with empty list)
+- [x] Tests verify data integrity: uploaded data matches exported data
+- [x] Tests verify CSV format has correct headers
+- [x] Tests cover pagination (skip/limit)
+- [x] Tests cover invalid format → 400
+- [ ] Formal review documented and signed off in spec
 
 **Verification:**
-- [ ] `pytest tests/integration/test_export_endpoint.py -v` — all pass
-- [ ] Coverage for `app/infrastructure/api/endpoints/export.py` ≥ 80%
+- [x] `pytest tests/integration/test_export_endpoint.py -v` — all 9 pass
+- [x] Coverage for `app/infrastructure/api/endpoints/export.py` = 100%
+- [ ] Review against plan.md criteria complete and documented in spec
 
-**Dependencies:** Task 18 (/export endpoint)
+**Dependencies:** Task 18 (/export endpoint ✅)
 
 **Files likely touched:**
-- `tests/integration/test_export_endpoint.py` (new)
+- **None** — review-only (existing file verified)
 
-**Estimated scope:** Small (1 file)
+**Estimated scope:** XS (review + document, 0 files touched)
 
 ---
 
-#### Task 23: E2E Tests — Full Flow
+#### Task 23: E2E Tests — Full Flow + Docker Smoke
 
-**Description:** Create end-to-end tests for the complete user flow in `tests/e2e/test_full_flow.py`: authenticate → upload → export. Test the entire API as a black box.
+**Description:** Create the only truly new P6 deliverable: comprehensive end-to-end tests. **Part A:** `tests/e2e/test_full_flow.py` — 8-10 ASGI+SQLite E2E tests using the shared `client` fixture (ASGI transport). **Part B:** `tests/e2e/test_smoke_docker.py` — 1-2 Docker smoke tests using real HTTP against a `docker-compose up` stack with PostgreSQL. See spec for detailed test scenarios.
 
-**Acceptance criteria:**
-- [ ] Test: `POST /token` → obtain JWT
-- [ ] Test: `POST /upload` with valid data → 200
-- [ ] Test: `POST /upload` with mixed data → 207
-- [ ] Test: `GET /export` → verify data matches upload
-- [ ] Test: `GET /export?format=csv` → verify CSV format
-- [ ] Test: Full flow: login → upload → export → verify integrity
-- [ ] All tests pass with `pytest tests/e2e/`
+**Part A: Fast E2E Tests (ASGI + SQLite) — 8-10 tests**
+
+| # | Test Function | Flow | Expected |
+|---|---------------|------|----------|
+| 1 | `test_full_flow_login_upload_json_export_json` | Login → upload 3 JSON → export JSON → verify | 200 + data integrity |
+| 2 | `test_full_flow_login_upload_csv_export_csv` | Login → upload CSV → export CSV → verify | 200 + data integrity |
+| 3 | `test_full_flow_partial_upload_207_export` | Login → upload 3 valid + 2 invalid → 207 → export 3 | 207 + data integrity |
+| 4 | `test_full_flow_all_invalid_upload_422` | Login → upload all-invalid → 422 | 422 + RFC 7807 |
+| 5 | `test_full_flow_multi_step_sequence` | Login → upload 2 → export 2 → upload 3 → export 5 | 200 + cumulative state |
+| 6 | `test_full_flow_unauthenticated_rejected` | /upload + /export without token → 401 | 401 |
+| 7 | `test_full_flow_export_formats` | Upload → export JSON → export CSV → compare | Data match |
+| 8 | `test_full_flow_export_pagination` | Upload 10 → export skip/limit → verify pages | Correct pagination |
+| 9 | `test_full_flow_upload_batch_size_enforcement` | Upload > MAX_BATCH_SIZE → 413 | 413 |
+| 10 | `test_full_flow_health_check_in_flow` | GET / before/during/after flow → 200 | Health always responds |
+
+**Part B: Docker Smoke Tests (Real HTTP + PostgreSQL) — 1-2 tests**
+
+| # | Test Function | Flow | Expected |
+|---|---------------|------|----------|
+| 1 | `test_smoke_docker_app_boots` | `docker-compose up` → GET /docs → GET / | Swagger loads + health check |
+| 2 | `test_smoke_docker_full_flow` | POST /token → POST /upload → GET /export | 200 + data integrity |
+
+**Acceptance criteria (Part A):**
+- [ ] All 8-10 ASGI E2E tests pass: `pytest tests/e2e/test_full_flow.py -v`
+- [ ] Tests use shared `client` fixture from `conftest.py` (ASGI transport, SQLite)
+- [ ] `auth_token` and `seeded_data` fixtures are local to `test_full_flow.py`
+- [ ] Google-style docstrings on every test function
+- [ ] ASGI E2E tests complete in under 15 seconds
+
+**Acceptance criteria (Part B):**
+- [ ] Docker smoke tests pass when `docker-compose up` is running: `pytest tests/e2e/test_smoke_docker.py -v -m docker`
+- [ ] Docker smoke tests marked with `@pytest.mark.docker` and skipped gracefully when Docker unavailable
+- [ ] Smoke tests use real `httpx.AsyncClient` against `http://localhost:8000`
+- [ ] Smoke tests wait for API readiness (health check loop with timeout)
 
 **Verification:**
-- [ ] `pytest tests/e2e/test_full_flow.py -v` — all pass
-- [ ] Overall coverage ≥ 80%: `pytest --cov=app --cov-report=term-missing`
+- [ ] `pytest tests/e2e/test_full_flow.py -v` — all 8-10 pass
+- [ ] `docker-compose up -d && sleep 5 && pytest tests/e2e/test_smoke_docker.py -v -m docker && docker-compose down` — smoke pass
+- [ ] `pytest --cov=app --cov-report=term-missing` — coverage ≥ 80% (must not drop below 94.07%)
+- [ ] `ruff check tests/e2e/` — zero errors
+- [ ] `mypy tests/e2e/` — zero type errors
 
-**Dependencies:** Task 17 (/upload), Task 18 (/export), Task 7 (JWT auth)
+**Dependencies:** Task 17 (/upload ✅), Task 18 (/export ✅), Task 7 (JWT auth ✅), Docker + docker-compose (for smoke)
 
 **Files likely touched:**
-- `tests/e2e/test_full_flow.py` (new)
+- `tests/e2e/test_full_flow.py` (new — ~350 lines, 8-10 tests)
+- `tests/e2e/test_smoke_docker.py` (new — ~80 lines, 1-2 tests)
+- `tests/e2e/__init__.py` (update — docstring if needed)
 
-**Estimated scope:** Medium (1 file)
+**Estimated scope:** Medium-Large (2 files, 10-12 test functions, ~430 lines)
 
 ---
 
-### Checkpoint: Testing Complete ✅
+### ✅ Checkpoint P6: Testing Complete
 
-- [ ] `pytest` — all tests pass
-- [ ] `pytest --cov=app` — coverage ≥ 80%
+Before proceeding to P7 (Deployment), verify:
+
+- [ ] `pytest tests/unit/ tests/integration/` — all 234+ existing tests pass, zero failed
+- [ ] T19 formal review signed off — all acceptance criteria met (4/4)
+- [ ] T20 formal review signed off — FK all-invalid + repo error recovery added (5/5)
+- [ ] T21 formal review signed off — 6 error path tests added and pass (6/6)
+- [ ] T22 formal review signed off — all acceptance criteria met (4/4)
+- [ ] `pytest tests/e2e/test_full_flow.py -v` — all 8-10 ASGI E2E tests pass
+- [ ] `docker-compose up -d && pytest tests/e2e/test_smoke_docker.py -v -m docker` — smoke tests pass
+- [ ] `pytest --cov=app --cov-report=term-missing` — coverage ≥ 80% (target: maintain ≥ 94%)
+- [ ] Coverage gap closure: all 49 uncovered lines addressed (tests, Docker smoke, or documented exceptions)
 - [ ] `ruff check .` — zero errors
 - [ ] `mypy .` — zero type errors
-- [ ] **Review with human before proceeding**
+- [ ] `test_app_core_imports.py` — passes (domain layer has zero external imports)
+- [ ] All tests deterministic — 3 consecutive runs all pass
+- [ ] **Human review completed** — 5 axes: Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅
 
 ---
 
@@ -1027,11 +1083,11 @@ This plan reorganizes the original horizontal phases into vertical slices. Here'
 | Task 16 | New (CSV/JSON Parsers — not in original specs) |
 | Task 17 | Spec-F3-002 (/upload Endpoint) |
 | Task 18 | Spec-F3-003 (/export Endpoint) |
-| Task 19 | Spec-F4-001 (Unit Tests — Validation) |
-| Task 20 | Spec-F4-002 (Unit Tests — Services) |
-| Task 21 | Spec-F4-003 (Integration Tests — /upload) |
-| Task 22 | Spec-F4-004 (Integration Tests — /export) |
-| Task 23 | Spec-F4-005 (E2E Tests) |
+| Task 19 | Spec-F4-001 | Unit Tests — Validation + Schemas (built P2–P4, formal review) |
+| Task 20 | Spec-F4-002 | Unit Tests — Services + Repos (built P3–P5, add FK + error recovery) |
+| Task 21 | Spec-F4-003 | Integration Tests — /upload (built P4, add 6 error paths) |
+| Task 22 | Spec-F4-004 | Integration Tests — /export (built P5, complete) |
+| Task 23 | Spec-F4-005 | E2E Tests — Full Flow + Docker Smoke (new, 8-10 ASGI + 1-2 smoke) |
 | Task 24 | Spec-F1-004 (Docker Dev) |
 | Task 25 | Spec-F5-001 (Docker Prod) + Spec-F5-002 (CI/CD) |
 | Task 26 | Spec-F6-001 (Final Documentation) |

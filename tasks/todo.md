@@ -111,19 +111,27 @@
 
 ---
 
-## Phase 6: Testing 🔵 Ready for Specs
+## Phase 6: Testing 🟡 Spec Defined (Ready for Implementation)
 
-- [ ] **T19** — Unit Tests — Validation Service + Schemas (`tests/unit/test_validation_service.py`, `test_schemas.py`)
-- [ ] **T20** — Unit Tests — Order Service + Repositories (`tests/unit/test_order_service.py`, `test_repositories.py`)
-- [ ] **T21** — Integration Tests — /upload Endpoint (`tests/integration/test_upload_endpoint.py`)
-- [ ] **T22** — Integration Tests — /export Endpoint (`tests/integration/test_export_endpoint.py`)
-- [ ] **T23** — E2E Tests — Full Flow (`tests/e2e/test_full_flow.py`)
+> **Spec:** [specs/P6-TESTING-SLICE.md](../specs/P6-TESTING-SLICE.md)
+> **Discovery:** T19–T22 tests were built alongside P2–P5 (not left for P6). 234 tests, 94.07% coverage. P6 focuses on formal review, E2E creation, and closing 49 uncovered lines.
+
+- [ ] **T19** — Unit Tests — Validation Service + Schemas — **Built during P2–P4 (73 tests).** Formal review + 4/4 acceptance criteria met.
+- [ ] **T20** — Unit Tests — Order Service + Repositories — **Built during P3–P5 (35 tests).** Add FK all-invalid + repo error recovery.
+- [ ] **T21** — Integration Tests — /upload Endpoint — **Built during P4 (9 tests).** Add 6 error path tests.
+- [ ] **T22** — Integration Tests — /export Endpoint — **Built during P5 (9 tests).** All criteria met.
+- [ ] **T23** — E2E Tests — Full Flow + Docker Smoke — **New.** 8-10 ASGI E2E (`test_full_flow.py`) + 1-2 Docker smoke (`test_smoke_docker.py`).
 
 ### ✅ Checkpoint: Testing Complete
-- [ ] `pytest` — all tests pass
-- [ ] `pytest --cov=app` — coverage ≥ 80%
+- [ ] Formal review T19–T22: acceptance criteria verified against plan.md
+- [ ] `pytest tests/e2e/test_full_flow.py -v` — 8-10 ASGI E2E tests pass
+- [ ] `docker-compose up -d && pytest tests/e2e/test_smoke_docker.py -v -m docker` — smoke pass
+- [ ] Coverage gap closure: all 49 uncovered lines addressed
+- [ ] `pytest` — all tests pass (≥254)
+- [ ] `pytest --cov=app` — coverage ≥ 80% (target: maintain ≥ 94%)
 - [ ] `ruff check .` — zero errors
 - [ ] `mypy .` — zero type errors
+- [ ] Human review before proceeding
 
 ---
 
@@ -151,7 +159,7 @@
 | 3. Product Slice | 2 | 2 | ✅ Completed |
 | 4. Upload Slice | 8 | 8 | ✅ Completed |
 | 5. Export Slice | 1 | 1 | ✅ Completed |
-| 6. Testing | 5 | 0 | ❌ Not started |
+| 6. Testing | 5 | 0 | 🟡 Spec Defined |
 | 7. Deployment | 2 | 0 | ❌ Not started |
 | 8. Closure | 3 | 0 | ❌ Not started |
-| **Total** | **28** | **16** | 🟡 In Progress |
+| **Total** | **28** | **18** | 🟡 In Progress |
