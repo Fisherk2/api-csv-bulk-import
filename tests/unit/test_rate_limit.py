@@ -48,14 +48,19 @@ class TestRateLimitHeaders:
 class TestRateLimitExceeded:
     """Exceeding the rate limit should return 429."""
 
-    async def test_rate_limit_exceeded_returns_429(self, client, test_user, monkeypatch) -> None:
-        """Rapid requests to /token must eventually return 429."""
-        # Set a low limit dynamically — the callable reads settings at check time
-        import app.config as cfg
-        monkeypatch.setattr(cfg.settings, "TOKEN_RATE_LIMIT", 5)
+    async def _trigger_rate_limit(
+        self, client, test_user, monkeypatch, low_limit: int = 5
+    ):
+        """Lower the rate limit and make requests until a 429 is returned.
 
-        # Make 6 requests — the 6th should exceed the 5 req/min limit
-        for i in range(6):
+        Returns the first 429 response. Fails the test if the rate limit
+        is not triggered after ``low_limit + 1`` requests.
+        """
+        import app.config as cfg
+
+        monkeypatch.setattr(cfg.settings, "TOKEN_RATE_LIMIT", low_limit)
+
+        for _ in range(low_limit + 1):
             resp = await client.post(
                 "/token",
                 data={
@@ -64,30 +69,17 @@ class TestRateLimitExceeded:
                 },
             )
             if resp.status_code == 429:
-                break
-        else:
-            pytest.fail("Rate limit was not triggered after 6 requests")
+                return resp
+        pytest.fail("Rate limit was not triggered after %d requests", low_limit + 1)
 
+    async def test_rate_limit_exceeded_returns_429(self, client, test_user, monkeypatch) -> None:
+        """Rapid requests to /token must eventually return 429."""
+        resp = await self._trigger_rate_limit(client, test_user, monkeypatch)
         assert resp.status_code == 429
 
     async def test_rate_limit_exceeded_response_format(self, client, test_user, monkeypatch) -> None:
         """429 responses must follow RFC 7807 Problem Details format."""
-        import app.config as cfg
-        monkeypatch.setattr(cfg.settings, "TOKEN_RATE_LIMIT", 5)
-
-        for i in range(6):
-            resp = await client.post(
-                "/token",
-                data={
-                    "username": test_user["username"],
-                    "password": test_user["password"],
-                },
-            )
-            if resp.status_code == 429:
-                break
-        else:
-            pytest.fail("Rate limit was not triggered after 6 requests")
-
+        resp = await self._trigger_rate_limit(client, test_user, monkeypatch)
         assert resp.status_code == 429
         data = resp.json()
         assert data["title"] == "Rate Limit Exceeded"
