@@ -6,6 +6,15 @@ an httpx.AsyncClient with dependency overrides, and a test user fixture.
 
 from __future__ import annotations
 
+import os
+
+# Disable global rate limiting for all tests to prevent flaky test behavior.
+# Must be set before any app config imports (like settings.RATE_LIMIT_PER_MINUTE).
+os.environ["RATE_LIMIT_PER_MINUTE"] = "0"
+# Set a high per-endpoint token limit so rate limit tests don't interfere
+# with each other (the shared limiter state persists across test files).
+os.environ["TOKEN_RATE_LIMIT"] = "100000"
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (

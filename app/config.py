@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     # ── Rate Limiting ────────────────────────────────────
     RATE_LIMIT_PER_MINUTE: int = 100
 
+    # Per-endpoint rate limits (requests per minute)
+    TOKEN_RATE_LIMIT: int = 20
+
     # ── CORS ─────────────────────────────────────────────
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
 

@@ -1,16 +1,19 @@
 """FastAPI application factory.
 
 Creates and configures the FastAPI app with CORS middleware,
-health check endpoint, and all API routers.
+health check endpoint, rate limiting, and all API routers.
 """
 
 from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.infrastructure.api.routers import api_router
+from app.infrastructure.rate_limiter import limiter
 
 
 def create_app() -> FastAPI:
@@ -25,6 +28,10 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         openapi_url="/openapi.json",
     )
+
+    # ── Rate Limiting ──────────────────────────────────────
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
     # ── CORS ──────────────────────────────────────────────
     origins = [
