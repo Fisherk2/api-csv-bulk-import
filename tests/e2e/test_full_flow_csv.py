@@ -9,6 +9,8 @@ SQLite in-memory).
 
 from __future__ import annotations
 
+import io
+
 import pytest
 
 pytestmark = pytest.mark.asyncio
@@ -18,8 +20,6 @@ async def test_full_flow_login_upload_csv_export_csv(
     client, auth_token, seeded_data
 ):
     """Login → upload CSV → export CSV → verify CSV rows match upload."""
-    import io
-
     headers = {"Authorization": f"Bearer {auth_token}"}
 
     # CSV with 2 orders
@@ -93,8 +93,6 @@ async def test_full_flow_health_check_in_flow(
 
 async def test_full_flow_unauthenticated_upload_csv_401(client):
     """CSV upload without JWT must return 401."""
-    import io
-
     upload_resp = await client.post(
         "/upload",
         files={"file": ("orders.csv", io.BytesIO(b"a,b\n1,2\n"), "text/csv")},

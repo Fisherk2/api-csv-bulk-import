@@ -16,6 +16,7 @@ Skip in CI unless Docker is available:
 from __future__ import annotations
 
 import asyncio
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -70,7 +71,6 @@ async def test_smoke_docker_full_flow(docker_client):
     headers = {"Authorization": f"Bearer {token}"}
 
     # Upload with non-existent IDs → must return structured error (422), not 500
-    from uuid import uuid4
 
     upload_payload = {
         "orders": [
