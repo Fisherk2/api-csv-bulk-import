@@ -1,7 +1,7 @@
 # TODO: API de Importación/Exportación Masiva con Validación Estricta
 
 **Methodology:** Vertical Slice Planning (SDD)
-**Last Updated:** 2026-05-26
+**Last Updated:** 2026-05-27
 **Full Plan:** [tasks/plan.md](plan.md)
 
 ---
@@ -70,18 +70,18 @@
 
 ---
 
-## Phase 4: Customer + Order Upload Slice 🔵 Spec Ready — pending implementation
+## Phase 4: Customer + Order Upload Slice ✅ Completed (2026-05-26)
 
 > **Spec:** [specs/P4-UPLOAD-SLICE.md](../specs/P4-UPLOAD-SLICE.md)
 
-- [ ] **T10** — Customer Entity + Schemas — `Customer` entity, `CustomerCreateSchema`, `CustomerResponseSchema`
-- [ ] **T11** — Customer Model + Repository — `CustomerModel`, `ICustomerRepository`, `CustomerRepository`, migration
-- [ ] **T12** — Order + OrderItem Entities + Schemas — `Order`, `OrderItem` entities, `BatchUploadRequestSchema`, `BatchUploadResponseSchema`
-- [ ] **T13** — Order Model + Repository — `OrderModel`, `OrderItemModel`, `IOrderRepository`, `OrderRepository`, migration
-- [ ] **T14** — Validation Service — `ValidationService.validate_batch()` with RFC 7807 error format
-- [ ] **T15** — Order Service — `OrderService.upload_orders()` orchestrating validation + persistence
-- [ ] **T16** — CSV/JSON Parsers — `csv_parser.py`, `json_parser.py`, `file_utils.py`
-- [ ] **T17** — /upload Endpoint — `POST /upload` with auth, validation, partial processing (200/207/422)
+- [x] **T10** — Customer Entity + Schemas — `Customer` entity, `CustomerCreateSchema`, `CustomerResponseSchema`
+- [x] **T11** — Customer Model + Repository — `CustomerModel`, `ICustomerRepository`, `CustomerRepository`, migration
+- [x] **T12** — Order + OrderItem Entities + Schemas — `Order`, `OrderItem` entities, `BatchUploadRequestSchema`, `BatchUploadResponseSchema`
+- [x] **T13** — Order Model + Repository — `OrderModel`, `OrderItemModel`, `IOrderRepository`, `OrderRepository`, migration
+- [x] **T14** — Validation Service — `ValidationService.validate_batch()` with RFC 7807 error format
+- [x] **T15** — Order Service — `OrderService.upload_orders()` orchestrating validation + persistence
+- [x] **T16** — CSV/JSON Parsers — `csv_parser.py`, `json_parser.py`, `file_utils.py`
+- [x] **T17** — /upload Endpoint — `POST /upload` with auth, validation, partial processing (200/207/422)
 
 ### ✅ Checkpoint: Upload Vertical Slice
 - [ ] Authenticated `POST /upload` with valid JSON → 200
@@ -141,9 +141,9 @@
 | 1. Foundation | 3 | 3 | ✅ Completed |
 | 2. Auth Slice | 4 | 4 | ✅ Completed |
 | 3. Product Slice | 2 | 2 | ✅ Completed |
-| 4. Upload Slice | 8 | 0 | ❌ Not started |
+| 4. Upload Slice | 8 | 8 | ✅ Completed |
 | 5. Export Slice | 1 | 0 | ❌ Not started |
 | 6. Testing | 5 | 0 | ❌ Not started |
 | 7. Deployment | 2 | 0 | ❌ Not started |
 | 8. Closure | 3 | 0 | ❌ Not started |
-| **Total** | **28** | **7** | 🟡 In Progress |
+| **Total** | **28** | **15** | 🟡 In Progress |
