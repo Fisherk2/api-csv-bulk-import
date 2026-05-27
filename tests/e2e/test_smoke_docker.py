@@ -59,7 +59,7 @@ async def test_smoke_docker_app_boots(docker_client):
 
 
 async def test_smoke_docker_full_flow(docker_client):
-    """Full flow must work with real PostgreSQL."""
+    """Full flow must work with real PostgreSQL (no 500 errors)."""
     # Login
     login_resp = await docker_client.post(
         "/token",
@@ -69,7 +69,7 @@ async def test_smoke_docker_full_flow(docker_client):
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # Upload a valid order (customer and product must be pre-seeded)
+    # Upload with non-existent IDs → must return structured error (422), not 500
     from uuid import uuid4
 
     upload_payload = {
@@ -83,11 +83,20 @@ async def test_smoke_docker_full_flow(docker_client):
     upload_resp = await docker_client.post(
         "/upload", json=upload_payload, headers=headers
     )
-    # May be 200, 207, or 422 depending on data state
-    assert upload_resp.status_code in (200, 207, 422)
+    assert upload_resp.status_code == 422, (
+        f"Upload with invalid data must return 422, got {upload_resp.status_code}: "
+        f"{upload_resp.text[:200]}"
+    )
+    upload_data = upload_resp.json()
+    assert "total" in upload_data
+    assert "successful" in upload_data
+    assert "failed" in upload_data
+    assert upload_data["failed"] >= 1
 
-    # Export
+    # Export — must return valid JSON array (even if empty)
     export_resp = await docker_client.get(
         "/export?format=json", headers=headers
     )
     assert export_resp.status_code == 200
+    export_data = export_resp.json()
+    assert isinstance(export_data, list)

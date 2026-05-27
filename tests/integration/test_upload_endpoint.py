@@ -304,7 +304,7 @@ class TestUploadEndpointCSVEdgeCases:
     """CSV-specific edge cases for /upload."""
 
     @pytest.fixture(autouse=True)
-    async def _setup(self, test_db_session, test_user):
+    async def _setup(self, test_db_session, test_user, client):
         from app.core.entities.customer import Customer
         from app.core.entities.product import Product
         from app.infrastructure.repositories.customer_repository import (
@@ -323,31 +323,12 @@ class TestUploadEndpointCSVEdgeCases:
             Product(name="Edge Widget", price=10.0, stock=100)
         )
 
-        from httpx import ASGITransport, AsyncClient
-
-        from app.infrastructure.database.session import get_db
-        from app.main import create_app
-
-        self._app = create_app()
-
-        async def override_get_db():
-            yield test_db_session
-
-        self._app.dependency_overrides[get_db] = override_get_db
-
-        client = AsyncClient(
-            transport=ASGITransport(app=self._app), base_url="http://test"
-        )
         login_resp = await client.post(
             "/token",
             data={"username": test_user["username"], "password": test_user["password"]},
         )
-        token = login_resp.json()["access_token"]
         self.auth_client = client
-        self.token = token
-        yield
-        await self.auth_client.aclose()
-        self._app.dependency_overrides.clear()
+        self.token = login_resp.json()["access_token"]
 
     async def test_csv_upload_malformed_content_400(self) -> None:
         """CSV with missing required columns must return 400."""

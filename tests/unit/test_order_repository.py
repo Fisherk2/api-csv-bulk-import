@@ -231,6 +231,27 @@ class TestOrderRepositoryCRUD:
         result = await order_repo.create_batch([])
         assert result == []
 
+    @pytest.mark.asyncio
+    async def test_create_batch_exception_handling(
+        self, test_db_session, mocker
+    ) -> None:
+        """DB error during create_batch must be caught without propagation."""
+        from app.infrastructure.repositories.order_repository import (
+            OrderRepository,
+        )
+
+        repo = OrderRepository(session=test_db_session)
+        mocker.patch.object(
+            test_db_session, "execute",
+            side_effect=Exception("Simulated DB failure"),
+        )
+        order = Order(
+            customer_id=uuid4(),
+            items=[OrderItem(product_id=uuid4(), quantity=1, price=10.0)],
+        )
+        result = await repo.create_batch([order])
+        assert len(result) == 1
+
 
 class TestOrderRepositoryInterface:
     """IOrderRepository must be an ABC with all abstract methods."""

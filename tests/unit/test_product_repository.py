@@ -153,6 +153,24 @@ class TestProductRepositoryCRUD:
         names = {p.name for p in found}
         assert names == {"X", "Y"}
 
+    @pytest.mark.asyncio
+    async def test_create_batch_exception_handling(
+        self, test_db_session, mocker
+    ) -> None:
+        """DB error during create_batch must be caught without propagation."""
+        from app.infrastructure.repositories.product_repository import (
+            ProductRepository,
+        )
+
+        repo = ProductRepository(session=test_db_session)
+        mocker.patch.object(
+            test_db_session, "execute",
+            side_effect=Exception("Simulated DB failure"),
+        )
+        product = Product(name="Error Test", price=10.0, stock=5)
+        result = await repo.create_batch([product])
+        assert len(result) == 1
+
 
 class TestProductRepositoryInterface:
     """IProductRepository must be an ABC with all abstract methods."""

@@ -183,6 +183,26 @@ class TestCustomerRepositoryCRUD:
         result = await repo.create_batch([])
         assert result == []
 
+    @pytest.mark.asyncio
+    async def test_create_batch_exception_handling(
+        self, test_db_session, mocker
+    ) -> None:
+        """DB error during create_batch must be caught without propagation."""
+        from app.core.entities.customer import Customer
+        from app.infrastructure.repositories.customer_repository import (
+            CustomerRepository,
+        )
+
+        repo = CustomerRepository(session=test_db_session)
+        mocker.patch.object(
+            test_db_session, "execute",
+            side_effect=Exception("Simulated DB failure"),
+        )
+        customer = Customer(name="Error Test", email="error@example.com")
+        result = await repo.create_batch([customer])
+        # Method must return gracefully even after DB error
+        assert len(result) == 1
+
 
 class TestCustomerRepositoryInterface:
     """ICustomerRepository must be an ABC with all abstract methods."""

@@ -1,8 +1,11 @@
 """End-to-end tests for the complete user flow (T23 verification).
 
-Tests the full API as a black box: login → upload (JSON/CSV) → export
-(JSON/CSV) → data integrity verification. Uses the shared client
-fixture (ASGI transport, SQLite in-memory).
+Tests the full API as a black box: login → upload (JSON) → export
+(JSON/CSV) → data integrity verification. Uses shared fixtures from
+tests/e2e/conftest.py (ASGI transport, SQLite in-memory).
+
+CSV-specific upload tests and health check tests are in
+test_full_flow_csv.py.
 """
 
 from __future__ import annotations
@@ -12,54 +15,6 @@ from uuid import uuid4
 import pytest
 
 pytestmark = pytest.mark.asyncio
-
-
-# ── Local fixtures ──────────────────────────────────────────────────
-
-
-@pytest.fixture
-async def auth_token(client, test_user):
-    """Obtain a JWT token for the test user."""
-    response = await client.post(
-        "/token",
-        data={
-            "username": test_user["username"],
-            "password": test_user["password"],
-        },
-    )
-    assert response.status_code == 200
-    return response.json()["access_token"]
-
-
-@pytest.fixture
-async def seeded_data(test_db_session):
-    """Seed customers and products needed for upload tests."""
-    from app.core.entities.customer import Customer
-    from app.core.entities.product import Product
-    from app.infrastructure.repositories.customer_repository import (
-        CustomerRepository,
-    )
-    from app.infrastructure.repositories.product_repository import (
-        ProductRepository,
-    )
-
-    cust_repo = CustomerRepository(session=test_db_session)
-    prod_repo = ProductRepository(session=test_db_session)
-
-    customer = await cust_repo.create(
-        Customer(name="E2E Customer", email="e2e@example.com")
-    )
-    product_a = await prod_repo.create(
-        Product(name="E2E Widget A", price=10.0, stock=50)
-    )
-    product_b = await prod_repo.create(
-        Product(name="E2E Widget B", price=25.0, stock=100)
-    )
-    return {
-        "customer": customer,
-        "product_a": product_a,
-        "product_b": product_b,
-    }
 
 
 # ── E2E Flow Tests ──────────────────────────────────────────────────
@@ -121,46 +76,6 @@ async def test_full_flow_login_upload_json_export_json(
     # Verify the third order has 2 items (multi-item order)
     multi_item = [o for o in exported if len(o["items"]) == 2]
     assert len(multi_item) == 1
-
-
-async def test_full_flow_login_upload_csv_export_csv(
-    client, auth_token, seeded_data, test_db_session
-):
-    """Login → upload CSV → export CSV → verify CSV rows match upload."""
-    import io
-
-    headers = {"Authorization": f"Bearer {auth_token}"}
-
-    # CSV with 2 orders
-    cid = str(seeded_data["customer"].id)
-    pid_a = str(seeded_data["product_a"].id)
-    pid_b = str(seeded_data["product_b"].id)
-    csv_content = (
-        "customer_id,customer_name,customer_email,product_id,quantity,price\n"
-        f"{cid},E2E Customer,e2e@example.com,{pid_a},2,10.0\n"
-        f"{cid},E2E Customer,e2e@example.com,{pid_b},1,25.0\n"
-    )
-
-    upload_response = await client.post(
-        "/upload",
-        files={"file": ("orders.csv", io.BytesIO(csv_content.encode()), "text/csv")},
-        headers=headers,
-    )
-    assert upload_response.status_code == 200
-    upload_data = upload_response.json()
-    assert upload_data["total"] >= 1
-
-    export_response = await client.get(
-        "/export?format=csv", headers=headers
-    )
-    assert export_response.status_code == 200
-    csv_text = export_response.text
-    assert "order_id" in csv_text
-    assert "customer_id" in csv_text
-    assert "product_id" in csv_text
-    assert "quantity" in csv_text
-    assert "price" in csv_text
-    assert cid in csv_text
 
 
 async def test_full_flow_partial_upload_207_export(
@@ -380,40 +295,3 @@ async def test_full_flow_upload_batch_size_enforcement(
         "/upload", json={"orders": many_orders}, headers=headers
     )
     assert response.status_code == 413
-
-
-async def test_full_flow_health_check_in_flow(
-    client, auth_token, seeded_data
-):
-    """Health check must respond throughout the upload/export flow."""
-    # Health before
-    resp_before = await client.get("/")
-    assert resp_before.status_code == 200
-    assert resp_before.json()["status"] == "ok"
-
-    headers = {"Authorization": f"Bearer {auth_token}"}
-    cid = str(seeded_data["customer"].id)
-    pid = str(seeded_data["product_a"].id)
-
-    # Upload
-    await client.post(
-        "/upload",
-        json={"orders": [{
-            "customer_id": cid,
-            "items": [{"product_id": pid, "quantity": 1, "price": 10.0}],
-        }]},
-        headers=headers,
-    )
-
-    # Health during
-    resp_during = await client.get("/")
-    assert resp_during.status_code == 200
-    assert resp_during.json()["status"] == "ok"
-
-    # Export
-    await client.get("/export?format=json", headers=headers)
-
-    # Health after
-    resp_after = await client.get("/")
-    assert resp_after.status_code == 200
-    assert resp_after.json()["version"] == "1.0.0"
