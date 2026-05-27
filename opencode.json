@@ -9,10 +9,10 @@
       "model": "opencode-go/qwen3.6-plus"
     },
     "quetzalcoatl": {
-      "model": "opencode-go/deepseek-v4-flash"
+      "model": "opencode-go/deepseek-v4-pro"
     },
     "tezcatlipoca": {
-      "model": "opencode-go/deepseek-v4-pro"
+      "model": "opencode-go/deepseek-v4-flash"
     },
     "build": {
       "disable": true
