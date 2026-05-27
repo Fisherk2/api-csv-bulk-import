@@ -210,12 +210,26 @@ For project context, technical stack, architecture and conventions, refer to [AG
 ### Phase P5: Export Vertical Slice
 
 > **Objective:** An authenticated user can do `GET /export` and receive data in JSON or CSV.
-> **Status:** 🔵 Spec Ready — ready for specs definition
-> **Detailed plan:** [tasks/plan.md — Task 18](tasks/plan.md)
+> **Status:** 🟡 Ready for Implementation — specs defined
+> **Detailed spec:** [specs/P5-EXPORT-SLICE.md](specs/P5-EXPORT-SLICE.md) | **Detailed plan:** [tasks/plan.md — Task 18](tasks/plan.md)
+
+**P5 Architectural Decisions:**
+- **AD-P5-01:** Format selection via query parameter (`?format=json` or `?format=csv`, default: json)
+- **AD-P5-02:** `ExportService` depends on `IOrderRepository` only (DIP) — zero framework imports
+- **AD-P5-03:** Flat CSV format — one row per order item (7 columns: order_id, customer_id, product_id, quantity, price, status, created_at)
+- **AD-P5-04:** Raw data stream — no envelope wrapper, no total count in MVP
+- **AD-P5-05:** Single `/export` endpoint returns orders only — no sub-resources in MVP
+- **AD-P5-06:** No filters (date, status, customer) in MVP — per WORKFLOW.md Q#1
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T18 | Spec-F3-003 + Spec-F3-004 (partial) | `/export` Endpoint | `GET /export` with JSON/CSV format negotiation, pagination (`skip`/`limit`), auth required | High | New: 2-3 | T07, T13 | 0/8 | ❌ |
+| T18 | Spec-F3-003 + Spec-F3-004 (partial) | `/export` Endpoint | `GET /export` with format negotiation (`?format=json\|csv`), pagination (`skip`/`limit`), auth required | High | New: 5-7 | T07, T12, T13 | 0/16 | ❌ |
+
+**P5 Notes:**
+- Single task phase — builds entirely on existing P4 infrastructure (no new DB changes).
+- CSV export flattens orders: one row per order item.
+- JSON export reuses existing `OrderResponseSchema`.
+- Pagination: `skip` (default 0), `limit` (default 100, max 1000).
 
 ### ✅ Checkpoint P5: Full Upload → Export Flow
 
