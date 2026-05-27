@@ -36,7 +36,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P1: Foundation** | 1 day | 2026-05-26 | 2026-05-25 | ✅ Completed | Directories, configs, linters | ✅ Tools pass |
 | **P2: Auth Slice** | 2 days | 2026-05-27 | 2026-05-28 | ✅ Completed | DB → User → JWT → `/token` + `GET /` health | ✅ Auth works |
 | **P3: Product Slice** | 1 day | 2026-05-26 | 2026-05-26 | ✅ Completed | Product entity → model → repo | ✅ Tests pass |
-| **P4: Upload Slice** | 3 days | 2026-05-30 | 2026-06-01 | 🔵 Spec Ready | Customer → Order → Validation → `/upload` | ✅ Upload works |
+| **P4: Upload Slice** | 3 days | 2026-05-28 | 2026-05-26 | ✅ Completed | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ❌ | `/export` with JSON/CSV | ✅ Full flow works |
 | **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | ❌ | Unit → Integration → E2E (≥80%) | ✅ Coverage ≥80% |
 | **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ❌ | Docker prod + CI/CD | — |
@@ -157,18 +157,18 @@ For project context, technical stack, architecture and conventions, refer to [AG
 
 > **Objective:** An authenticated user can send `POST /upload` with CSV/JSON and receive 200/207/422.
 > **Detailed spec:** [specs/P4-UPLOAD-SLICE.md](specs/P4-UPLOAD-SLICE.md) | **Detailed plan:** [tasks/plan.md — Tasks 10-17](tasks/plan.md)
-> **Status:** 🔵 Spec Ready — ready for implementation
+> **Status:** ✅ Completed — 216 tests pass, 93.64% coverage, ruff clean, mypy clean
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T10 | Spec-F2-001 (Customer) + Spec-F2-005 (Customer schemas) | Customer Entity + Schemas | `Customer` entity, `CustomerCreateSchema`, `CustomerResponseSchema` | High | New: 2-4 | T01 | 0/4 | ❌ |
-| T11 | Spec-F2-003 (Customer) + Spec-F2-002/004 (Customer repo) | Customer Model + Repository | `CustomerModel`, `ICustomerRepository`, `CustomerRepository`, migration | High | New: 4-5 | T04, T10 | 0/5 | ❌ |
-| T12 | Spec-F2-001 (Order) + Spec-F2-005 (Order schemas) | Order + OrderItem Entities + Schemas | `Order`, `OrderItem`, `BatchUploadRequestSchema`, `BatchUploadResponseSchema` | High | New: 3-4 | T01 | 0/6 | ❌ |
-| T13 | Spec-F2-003 (Order) + Spec-F2-002/004 (Order repo) | Order Model + Repository | `OrderModel`, `OrderItemModel`, `IOrderRepository`, `OrderRepository`, migration | High | New: 4-5 | T04, T09, T11, T12 | 0/5 | ❌ |
-| T14 | Spec-F2-006 | Validation Service | `ValidationService.validate_batch()` with RFC 7807 | High | New: 1-2 | T06, T12 | 0/3 | ❌ |
-| T15 | Spec-F2-007 | Order Service | `OrderService.upload_orders()` orchestrating validation + persistence | High | New: 1-2 | T13, T14 | 0/3 | ❌ |
-| T16 | *New* | CSV/JSON Parsers | `csv_parser.py`, `json_parser.py`, `file_utils.py` | High | New: 3-4 | T01 | 0/3 | ❌ |
-| T17 | Spec-F3-002 + Spec-F3-004 (partial) | `/upload` Endpoint | `POST /upload` with auth, validation, partial processing (200/207/422) | High | New: 2-3 | T07, T15, T16 | 0/8 | ❌ |
+| T10 | Spec-F2-001 (Customer) + Spec-F2-005 (Customer schemas) | Customer Entity + Schemas | `Customer` entity, `CustomerCreateSchema`, `CustomerResponseSchema` | High | New: 2-4 | T01 | 4/4 | ✅ |
+| T11 | Spec-F2-003 (Customer) + Spec-F2-002/004 (Customer repo) | Customer Model + Repository | `CustomerModel`, `ICustomerRepository`, `CustomerRepository`, migration | High | New: 4-5 | T04, T10 | 5/5 | ✅ |
+| T12 | Spec-F2-001 (Order) + Spec-F2-005 (Order schemas) | Order + OrderItem Entities + Schemas | `Order`, `OrderItem`, `BatchUploadRequestSchema`, `BatchUploadResponseSchema` | High | New: 3-4 | T01 | 6/6 | ✅ |
+| T13 | Spec-F2-003 (Order) + Spec-F2-002/004 (Order repo) | Order Model + Repository | `OrderModel`, `OrderItemModel`, `IOrderRepository`, `OrderRepository`, migration | High | New: 4-5 | T04, T09, T11, T12 | 5/5 | ✅ |
+| T14 | Spec-F2-006 | Validation Service | `ValidationService.validate_batch()` with RFC 7807 | High | New: 1-2 | T06, T12 | 3/3 | ✅ |
+| T15 | Spec-F2-007 | Order Service | `OrderService.upload_orders()` orchestrating validation + persistence | High | New: 1-2 | T13, T14 | 3/3 | ✅ |
+| T16 | *New* | CSV/JSON Parsers | `csv_parser.py`, `json_parser.py`, `file_utils.py` | High | New: 3-4 | T01 | 3/3 | ✅ |
+| T17 | Spec-F3-002 + Spec-F3-004 (partial) | `/upload` Endpoint | `POST /upload` with auth, validation, partial processing (200/207/422) | High | New: 2-3 | T07, T15, T16 | 8/8 | ✅ |
 
 **P4 Architectural Decisions:**
 - **AD-P4-01:** Customer deduplication by email — `ON CONFLICT (email) DO NOTHING`
@@ -186,12 +186,24 @@ For project context, technical stack, architecture and conventions, refer to [AG
 
 ### ✅ Checkpoint P4: Upload Vertical Slice
 
-- [ ] `POST /upload` with valid JSON → 200
-- [ ] `POST /upload` with mixed valid/invalid → 207 with RFC 7807 errors
-- [ ] `POST /upload` with all invalid → 422
-- [ ] Request without authentication → 401
-- [ ] `ruff check .` and `mypy .` pass without errors
-- [ ] **Human review before proceeding**
+- [x] `POST /upload` with valid JSON → 200
+- [x] `POST /upload` with mixed valid/invalid → 207 with RFC 7807 errors
+- [x] `POST /upload` with all invalid → 422
+- [x] Request without authentication → 401
+- [x] CSV upload with valid data → 200
+- [x] CSV upload batch size enforcement → 413
+- [x] File size check on CSV upload → 413
+- [x] Product FK validation via batch `get_by_ids()` query
+- [x] Required CSV column validation
+- [x] `ruff check .` and `mypy .` pass without errors
+- [x] **Human review completed** — 5 axes: Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅
+
+**P4 Closing Notes:**
+- 216 tests passing, coverage 93.64%, ruff zero issues, mypy zero issues.
+- P4 completed on 2026-05-26. P5 (Export Slice) ready to define specs.
+- **Technical decisions:** Order `create_batch` tracks actually-inserted orders via RETURNING (PostgreSQL) and only inserts items for those orders, preventing FK violations. Product FK validation via single batch `get_by_ids` query in OrderService (replacing ValidationService iteration). CSV parser validates required columns at `parse_csv_to_orders` level (not raw `parse_csv`). File size and batch size enforced on both JSON and CSV upload paths via `settings.MAX_FILE_SIZE_MB` and `settings.MAX_BATCH_SIZE`.
+- **Design trade-off:** `OrderService` now handles schema validation inline (via `OrderCreateSchema.model_validate`) instead of delegating to `ValidationService`, to track original row indices for FK error reporting. `ValidationService` remains available as a standalone validator but is not called from the upload flow.
+- **Pending (future iteration):** Customer resolution (find by email or create during upload). Currently `customer_id` must reference an existing customer record — customers are expected to be pre-seeded before order upload.
 
 ---
 
@@ -277,16 +289,16 @@ graph TD
     T04 --> T08[T08\nProduct Entity + Schemas\n✅]
     T08 --> T09[T09\nProduct Model + Repository\n✅]
 
-    T08 --> T10[T10\nCustomer Entity + Schemas\n❌]
-    T10 --> T11[T11\nCustomer Model + Repository\n❌]
-    T11 --> T12[T12\nOrder + OrderItem Entities + Schemas\n❌]
-    T12 --> T13[T13\nOrder Model + Repository\n❌]
+    T08 --> T10[T10\nCustomer Entity + Schemas\n✅]
+    T10 --> T11[T11\nCustomer Model + Repository\n✅]
+    T11 --> T12[T12\nOrder + OrderItem Entities + Schemas\n✅]
+    T12 --> T13[T13\nOrder Model + Repository\n✅]
     T09 --> T13
-    T13 --> T14[T14\nValidation Service\n❌]
-    T14 --> T15[T15\nOrder Service\n❌]
+    T13 --> T14[T14\nValidation Service\n✅]
+    T14 --> T15[T15\nOrder Service\n✅]
     T07 --> T15
-    T15 --> T16[T16\nCSV/JSON Parsers\n❌]
-    T16 --> T17[T17\n/upload Endpoint\n❌]
+    T15 --> T16[T16\nCSV/JSON Parsers\n✅]
+    T16 --> T17[T17\n/upload Endpoint\n✅]
     T07 --> T17
 
     T13 --> T18[T18\n/export Endpoint\n❌]

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 from typing import Any
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,6 +41,8 @@ async def _get_order_service(db: AsyncSession) -> OrderService:
 
 async def _parse_json_upload(request: Request) -> list[dict[str, Any]]:
     """Parse JSON body into list of order dicts."""
+    from app.config import settings
+
     try:
         body_data = await request.json()
     except Exception:
@@ -69,10 +70,10 @@ async def _parse_json_upload(request: Request) -> list[dict[str, Any]]:
             detail="At least one order is required",
         )
 
-    if len(orders_raw) > 1000:
+    if len(orders_raw) > settings.MAX_BATCH_SIZE:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="Batch size exceeds maximum of 1000 orders",
+            detail=f"Batch size exceeds maximum of {settings.MAX_BATCH_SIZE} orders",
         )
 
     return orders_raw
@@ -101,6 +102,19 @@ async def upload(
         content_bytes = await file.read()
         content = content_bytes.decode("utf-8")
 
+        # Validate file size (max MB from config)
+        from app.config import settings
+        from app.utils.file_utils import validate_file_size
+
+        if not validate_file_size(
+            size=len(content_bytes),
+            max_mb=settings.MAX_FILE_SIZE_MB,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File exceeds maximum size of {settings.MAX_FILE_SIZE_MB} MB",
+            )
+
         from app.utils.csv_parser import parse_csv_to_orders
 
         try:
@@ -110,10 +124,17 @@ async def upload(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(exc),
             )
+
+        # Enforce batch size limit for CSV uploads (same as JSON path)
+        if len(orders_data) > settings.MAX_BATCH_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Batch size exceeds maximum of {settings.MAX_BATCH_SIZE} orders",
+            )
     else:
         orders_data = await _parse_json_upload(request)
 
-    user_id = UUID(user.id) if isinstance(user.id, str) else user.id
+    user_id = user.id
     result = await service.upload_orders(orders_data, user_id=user_id)
 
     http_status = _status_for_result(result)

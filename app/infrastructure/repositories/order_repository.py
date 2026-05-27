@@ -125,21 +125,39 @@ class OrderRepository(IOrderRepository):
                 else sqlite_insert
             )
 
+            # Track which orders were actually inserted (not skipped by ON CONFLICT)
+            is_postgresql = engine.dialect.name == "postgresql"
+            inserted_order_ids: set[UUID] = {m.id for m in models}
+
             if order_values:
                 stmt = (
                     insert_fn(OrderModel)
                     .values(order_values)
                     .on_conflict_do_nothing(index_elements=["id"])
                 )
-                await self._session.execute(stmt)
+                result = await self._session.execute(stmt)
+                # PostgreSQL's ON CONFLICT DO NOTHING + RETURNING tells us
+                # which rows were actually inserted vs. skipped
+                if is_postgresql:
+                    returned_ids: set[UUID] = {
+                        row.id for row in result.fetchall()
+                    }
+                    inserted_order_ids = returned_ids
 
+            # Only insert items for orders that were actually created
             if item_values:
-                stmt = (
-                    insert_fn(OrderItemModel)
-                    .values(item_values)
-                    .on_conflict_do_nothing(index_elements=["id"])
-                )
-                await self._session.execute(stmt)
+                filtered_items = [
+                    iv
+                    for iv in item_values
+                    if iv["order_id"] in inserted_order_ids
+                ]
+                if filtered_items:
+                    stmt = (
+                        insert_fn(OrderItemModel)
+                        .values(filtered_items)
+                        .on_conflict_do_nothing(index_elements=["id"])
+                    )
+                    await self._session.execute(stmt)
         except Exception:
             logger.exception(
                 "create_batch failed for %d orders, rolling back",

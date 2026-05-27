@@ -12,6 +12,15 @@ import csv
 import io
 from typing import Any
 
+_REQUIRED_COLUMNS = frozenset({
+    "customer_id",
+    "customer_name",
+    "customer_email",
+    "product_id",
+    "quantity",
+    "price",
+})
+
 
 def parse_csv(content: str) -> list[dict[str, Any]]:
     """Parse CSV content into a list of dictionaries (one per row).
@@ -50,6 +59,9 @@ def parse_csv_to_orders(content: str) -> list[dict[str, Any]]:
     Flat CSV rows (one per order item) are grouped by customer_email
     into order dicts compatible with OrderCreateSchema.
 
+    The CSV must have these columns:
+        customer_name, customer_email, customer_id, product_id, quantity, price
+
     Args:
         content: Raw CSV string with header row.
 
@@ -57,9 +69,19 @@ def parse_csv_to_orders(content: str) -> list[dict[str, Any]]:
         List of order dicts, each with customer_id and items list.
 
     Raises:
-        ValueError: If CSV is empty, has no header, or is malformed.
+        ValueError: If CSV is empty, has no header, is malformed,
+                    or is missing required columns.
     """
     rows = parse_csv(content)
+
+    # Validate required columns are present (check first row's keys)
+    if rows:
+        header_cols = set(rows[0].keys())
+        missing_cols = _REQUIRED_COLUMNS - header_cols
+        if missing_cols:
+            raise ValueError(
+                f"CSV missing required columns: {', '.join(sorted(missing_cols))}"
+            )
 
     orders_by_customer: dict[str, dict[str, Any]] = {}
     for row in rows:

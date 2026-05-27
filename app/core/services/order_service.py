@@ -1,8 +1,8 @@
 """OrderService — application service for order upload orchestration.
 
-Orchestrates the batch upload flow: validates raw data via
-ValidationService, resolves customer references, validates product
-foreign keys, and persists orders via repository interfaces.
+Orchestrates the batch upload flow: validates raw data via Pydantic
+schemas, validates product foreign keys via repository, and persists
+orders via repository interfaces.
 
 Depends on repository interfaces (DIP), not concrete implementations.
 ZERO imports from sqlalchemy or fastapi.
@@ -18,7 +18,6 @@ from app.core.entities.order import Order, OrderItem
 from app.core.repositories.customer_repository import ICustomerRepository
 from app.core.repositories.order_repository import IOrderRepository
 from app.core.repositories.product_repository import IProductRepository
-from app.core.services.validation_service import ValidationService
 from app.schemas.order import (
     BatchErrorDetailSchema,
     BatchUploadResponseSchema,
@@ -31,8 +30,8 @@ logger = logging.getLogger(__name__)
 class OrderService:
     """Application service orchestrating the batch order upload flow.
 
-    Coordinates validation, customer resolution, product FK validation,
-    and persistence. All infrastructure dependencies are injected via
+    Coordinates schema validation, product FK validation, and
+    persistence. All infrastructure dependencies are injected via
     repository interfaces (Dependency Inversion Principle).
     """
 
@@ -64,22 +63,26 @@ class OrderService:
 
         total = len(orders_data)
 
-        # Step 1: Validate against schema
-        valid_schemas, validation_errors = ValidationService.validate_batch(
-            orders_data, OrderCreateSchema
-        )
+        # Step 1: Schema validation with index tracking
+        valid_schemas: list[OrderCreateSchema] = []
+        valid_indices: list[int] = []  # 0-indexed positions in orders_data
+        errors: list[BatchErrorDetailSchema] = []
 
-        # Step 2: Convert domain errors to API schema
-        errors = [
-            BatchErrorDetailSchema(
-                type="about:blank",
-                title="Validation Error",
-                status=422,
-                detail=e.message,
-                row_number=e.row_number,
-            )
-            for e in validation_errors
-        ]
+        for i, item_data in enumerate(orders_data):
+            try:
+                validated = OrderCreateSchema.model_validate(item_data)
+                valid_schemas.append(validated)
+                valid_indices.append(i)
+            except ValueError as exc:
+                errors.append(
+                    BatchErrorDetailSchema(
+                        type="about:blank",
+                        title="Validation Error",
+                        status=422,
+                        detail=str(exc),
+                        row_number=i + 1,
+                    )
+                )
 
         if not valid_schemas:
             return BatchUploadResponseSchema(
@@ -89,10 +92,52 @@ class OrderService:
                 errors=errors,
             )
 
+        # Step 2: Product foreign key validation via batch query
+        all_product_ids: set[UUID] = set()
+        for s in valid_schemas:
+            for item in s.items:
+                all_product_ids.add(item.product_id)
+
+        existing_products = await self._product_repo.get_by_ids(
+            list(all_product_ids)
+        )
+        existing_pids: set[UUID] = {p.id for p in existing_products}
+
+        # Filter valid schemas: remove orders with missing product references
+        fk_valid_schemas: list[OrderCreateSchema] = []
+        for idx, s in enumerate(valid_schemas):
+            missing_pids = [
+                item.product_id
+                for item in s.items
+                if item.product_id not in existing_pids
+            ]
+            if missing_pids:
+                errors.append(
+                    BatchErrorDetailSchema(
+                        type="about:blank",
+                        title="Foreign Key Error",
+                        status=422,
+                        detail=(
+                            f"Product(s) not found: "
+                            f"{', '.join(str(pid) for pid in missing_pids)}"
+                        ),
+                        row_number=valid_indices[idx] + 1,
+                    )
+                )
+            else:
+                fk_valid_schemas.append(s)
+
+        if not fk_valid_schemas:
+            return BatchUploadResponseSchema(
+                total=total,
+                successful=0,
+                failed=total,
+                errors=errors,
+            )
+
         # Step 3: Convert valid schemas to domain entities
         domain_orders: list[Order] = []
-
-        for s_idx, s in enumerate(valid_schemas, start=1):
+        for s in fk_valid_schemas:
             domain_orders.append(
                 Order(
                     customer_id=s.customer_id,
@@ -110,8 +155,8 @@ class OrderService:
         # Step 4: Persist via repository
         await self._order_repo.create_batch(domain_orders)
 
-        successful = len(valid_schemas)
-        failed = len(validation_errors)
+        successful = len(fk_valid_schemas)
+        failed = total - successful
 
         return BatchUploadResponseSchema(
             total=total,
