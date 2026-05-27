@@ -97,14 +97,14 @@
 > **Spec:** [specs/P5-EXPORT-SLICE.md](../specs/P5-EXPORT-SLICE.md)
 > **Goal:** Authenticated `GET /export` returns orders in JSON or CSV with pagination. Read-only — no new DB changes.
 
-- [ ] **T18** — Export Service + CSV Serializer + `/export` Endpoint — `ExportService` (DIP, zero framework), `csv_exporter` (pure utility), `GET /export` with `?format=json|csv`, pagination (`skip`/`limit`), auth required
+- [x] **T18** — Export Service + CSV Serializer + `/export` Endpoint — `ExportService` (DIP, zero framework), `csv_exporter` (pure utility), `GET /export` with `?format=json|csv`, pagination (`skip`/`limit`), auth required
 
 ### ✅ Checkpoint: Full Upload → Export Flow
-- [ ] Full E2E flow: `POST /token` → `POST /upload` → `GET /export` works
-- [ ] Data integrity: uploaded data matches exported data
-- [ ] Pagination works: `GET /export?skip=10&limit=50` returns correct page
-- [ ] `ruff check .` and `mypy .` pass
-- [ ] `app/core/services/export_service.py` and `app/utils/csv_exporter.py` have zero framework imports
+- [x] Full E2E flow: `POST /token` → `POST /upload` → `GET /export` works
+- [x] Data integrity: uploaded data matches exported data
+- [x] Pagination works: `GET /export?skip=10&limit=50` returns correct page
+- [x] `ruff check .` and `mypy .` pass
+- [x] `app/core/services/export_service.py` and `app/utils/csv_exporter.py` have zero framework imports
 
 ---
 
@@ -147,8 +147,8 @@
 | 2. Auth Slice | 4 | 4 | ✅ Completed |
 | 3. Product Slice | 2 | 2 | ✅ Completed |
 | 4. Upload Slice | 8 | 8 | ✅ Completed |
-| 5. Export Slice | 1 | 0 | ❌ Not started |
+| 5. Export Slice | 1 | 1 | ✅ Completed |
 | 6. Testing | 5 | 0 | ❌ Not started |
 | 7. Deployment | 2 | 0 | ❌ Not started |
 | 8. Closure | 3 | 0 | ❌ Not started |
-| **Total** | **28** | **15** | 🟡 In Progress |
+| **Total** | **28** | **16** | 🟡 In Progress |

@@ -37,7 +37,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P2: Auth Slice** | 2 days | 2026-05-27 | 2026-05-28 | ✅ Completed | DB → User → JWT → `/token` + `GET /` health | ✅ Auth works |
 | **P3: Product Slice** | 1 day | 2026-05-26 | 2026-05-26 | ✅ Completed | Product entity → model → repo | ✅ Tests pass |
 | **P4: Upload Slice** | 3 days | 2026-05-28 | 2026-05-26 | ✅ Completed | Customer → Order → Validation → `/upload` | ✅ Upload works |
-| **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | 🔵 Spec Ready | `/export` with JSON/CSV | ✅ Full flow works |
+| **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ✅ Completed | `/export` with JSON/CSV | ✅ Full flow works |
 | **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | ❌ | Unit → Integration → E2E (≥80%) | ✅ Coverage ≥80% |
 | **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ❌ | Docker prod + CI/CD | — |
 | **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ❌ | Docs, user guide, retrospective | ✅ All done |
@@ -210,7 +210,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 ### Phase P5: Export Vertical Slice
 
 > **Objective:** An authenticated user can do `GET /export` and receive data in JSON or CSV.
-> **Status:** 🟡 Ready for Implementation — specs defined
+> **Status:** ✅ Completed — 232 tests pass, 94.06% coverage, ruff clean, mypy clean
 > **Detailed spec:** [specs/P5-EXPORT-SLICE.md](specs/P5-EXPORT-SLICE.md) | **Detailed plan:** [tasks/plan.md — Task 18](tasks/plan.md)
 
 **P5 Architectural Decisions:**
@@ -223,7 +223,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T18 | Spec-F3-003 + Spec-F3-004 (partial) | `/export` Endpoint | `GET /export` with format negotiation (`?format=json\|csv`), pagination (`skip`/`limit`), auth required | High | New: 5-7 | T07, T12, T13 | 0/16 | ❌ |
+| T18 | Spec-F3-003 + Spec-F3-004 (partial) | `/export` Endpoint | `GET /export` with format negotiation (`?format=json\|csv`), pagination (`skip`/`limit`), auth required | High | New: 5-7 | T07, T12, T13 | 16/16 | ✅ |
 
 **P5 Notes:**
 - Single task phase — builds entirely on existing P4 infrastructure (no new DB changes).
@@ -233,11 +233,19 @@ For project context, technical stack, architecture and conventions, refer to [AG
 
 ### ✅ Checkpoint P5: Full Upload → Export Flow
 
-- [ ] E2E flow: `POST /token` → `POST /upload` → `GET /export` works
-- [ ] Data integrity: uploaded data matches exported data
-- [ ] Pagination works: `GET /export?skip=10&limit=50` returns the correct page
-- [ ] `ruff check .` and `mypy .` pass without errors
-- [ ] **Human review before proceeding**
+- [x] E2E flow: `POST /token` → `POST /upload` → `GET /export` works
+- [x] Data integrity: uploaded data matches exported data
+- [x] Pagination works: `GET /export?skip=10&limit=50` returns the correct page
+- [x] `ruff check .` and `mypy .` pass without errors
+- [x] `app/core/services/export_service.py` and `app/utils/csv_exporter.py` have zero framework imports
+- [ ] **Human review before proceeding to P6**
+
+**P5 Closing Notes:**
+- 232 tests passing, coverage 94.06%, ruff zero issues, mypy zero issues.
+- 3 commits on `feature/api-import-export` (c825f66 → 50daeeb).
+- P5 completed on 2026-05-26. P6 (Testing) ready to start.
+- **Technical decisions:** Format via query param `?format=json` (default) or `?format=csv`; flat CSV with one row per order item (7 columns); `ExportService` depends on `IOrderRepository` only (DIP); `csv_exporter.py` is a pure utility with zero framework imports; raw data stream (no envelope/wrapper); no total count in MVP; `OrderResponseSchema.created_at` changed from `str` to `datetime` for proper Pydantic `from_attributes` compatibility.
+- **Files created:** ExportService, csv_exporter, export endpoint, and 2 test files (unit + integration).
 
 ---
 
