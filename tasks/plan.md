@@ -632,47 +632,71 @@ graph TD
 
 ### Phase 5: Export Vertical Slice
 
+> **Goal:** Authenticated users can call `GET /export` and receive orders in JSON (default) or CSV format with pagination. Read-only slice — builds entirely on existing P4 repositories, models, and auth. No new domain entities or database changes.
+> **Spec:** [specs/P5-EXPORT-SLICE.md](../specs/P5-EXPORT-SLICE.md)
+> **Architectural Decisions:** Format via query param (?format=json|csv, AD-P5-01), ExportService as application service with DIP (AD-P5-02), flat CSV (AD-P5-03), raw data stream no envelope (AD-P5-04), no total count (AD-P5-05), single endpoint (AD-P5-06), no filters (AD-P5-07), csv_exporter as utility (AD-P5-08)
+
 ---
 
-#### Task 18: /export Endpoint
+#### Task 18: /export Endpoint (Service + CSV Serializer + Endpoint)
 
-**Description:** Create the `/export` endpoint in `app/infrastructure/api/endpoints/export.py`. Allow authenticated users to export orders in JSON or CSV format, filtered by the authenticated user's data. Support `Accept` header for format negotiation. **Includes pagination** with `skip` and `limit` query parameters (defaults: `skip=0`, `limit=100`).
+**Description:** Create the complete export vertical slice: `ExportService` (application service depending on `IOrderRepository` only), `csv_exporter.py` (pure utility, zero framework deps), and the `GET /export` endpoint in `app/infrastructure/api/endpoints/export.py`. Wire the export router and update init files.
+
+**Format:** Query param `?format=json` (default) or `?format=csv`. Reject any other value with 400.
+**Pagination:** `?skip` (default 0, ge=0) and `?limit` (default 100, ge=1, le=1000).
+**Response shape:** JSON returns raw array of `OrderResponseSchema`. CSV returns `text/csv` with `Content-Disposition: attachment`.
+**No envelope, no total count — raw data stream per AD-P5-04 and AD-P5-05.**
 
 **Acceptance criteria:**
-- [ ] `GET /export` returns JSON when `Accept: application/json` (default)
-- [ ] `GET /export` returns CSV when `Accept: text/csv`
-- [ ] `GET /export?format=csv` returns CSV (query param override)
-- [ ] `GET /export?format=json` returns JSON (query param override)
-- [ ] `GET /export?skip=0&limit=100` returns paginated results (defaults: skip=0, limit=100)
-- [ ] `GET /export?limit=0` returns total count without data (count-only mode)
-- [ ] Returns 401 when no JWT token is provided
-- [ ] Returns 200 with data (may be empty list if no orders exist)
-- [ ] JSON response includes `orders` with nested `items` and pagination metadata (`total`, `skip`, `limit`)
-- [ ] CSV response includes headers: `order_id,customer_id,status,product_id,quantity,price,created_at`
+- [ ] `ExportService` depends on `IOrderRepository` interface only (DIP) — zero framework imports
+- [ ] `ExportService.export_orders_json(skip, limit)` returns list of JSON-serializable order dicts via `OrderResponseSchema`
+- [ ] `ExportService.export_orders_raw(skip, limit)` returns list of `Order` domain entities (for CSV path)
+- [ ] `export_orders_to_csv(orders: list[Order])` produces valid CSV with header row: `order_id,customer_id,product_id,quantity,price,status,created_at`
+- [ ] Empty orders → header-only CSV (no data rows)
+- [ ] One order with 3 items → 3 CSV data rows (one per item, order header repeated)
+- [ ] `GET /export` without `?format` → JSON by default (`application/json`)
+- [ ] `GET /export?format=csv` → `text/csv` content-type with `Content-Disposition: attachment; filename=orders.csv`
+- [ ] `GET /export?format=json` → `application/json` content-type
+- [ ] `GET /export?format=xml` → 400 Bad Request with descriptive error
+- [ ] `GET /export` without token → 401 Unauthorized
+- [ ] `GET /export?skip=10&limit=5` returns exactly the correct page
+- [ ] `GET /export?limit=1001` → 422 (FastAPI query param validation)
+- [ ] Endpoint wired into `app/infrastructure/api/routers.py` (include export router)
+- [ ] All new files have Google-style docstrings
+- [ ] `ExportService` and `csv_exporter` have zero imports from `sqlalchemy`, `fastapi`, or `http`
 
 **Verification:**
-- [ ] `curl -H "Authorization: Bearer <token>" http://localhost:8000/export` — returns JSON with pagination
-- [ ] `curl -H "Authorization: Bearer <token>" -H "Accept: text/csv" http://localhost:8000/export` — returns CSV
-- [ ] `curl -H "Authorization: Bearer <token>" "http://localhost:8000/export?skip=10&limit=50"` — returns paginated results
-- [ ] `curl http://localhost:8000/export` (no auth) — returns 401
-- [ ] Swagger UI shows `/export` endpoint with pagination params
+- [ ] `python -c "from app.core.services.export_service import ExportService; print(ExportService)"` — imports successfully
+- [ ] `python -c "from app.utils.csv_exporter import export_orders_to_csv; print(export_orders_to_csv)"` — imports successfully
+- [ ] `grep -r "from sqlalchemy\|from fastapi\|import http" app/core/services/export_service.py` — returns nothing
+- [ ] `grep -r "from sqlalchemy\|from fastapi\|import http" app/utils/csv_exporter.py` — returns nothing
+- [ ] `curl -H "Authorization: Bearer <token>" http://localhost:8000/export` — returns 200 JSON array
+- [ ] `curl -H "Authorization: Bearer <token>" "http://localhost:8000/export?format=csv"` — returns CSV download
+- [ ] `curl -H "Authorization: Bearer <token>" "http://localhost:8000/export?format=csv&skip=0&limit=10"` — paginated CSV
+- [ ] `curl http://localhost:8000/export` — returns 401
+- [ ] `curl -H "Authorization: Bearer <token>" "http://localhost:8000/export?format=xml"` — returns 400
+- [ ] Swagger UI shows `/export` endpoint with `format`, `skip`, `limit` query params
 
-**Dependencies:** Task 7 (JWT auth), Task 13 (Order repository)
+**Dependencies:** Task 7 (JWT auth), Task 12 (Order schemas), Task 13 (Order model + repository)
 
 **Files likely touched:**
+- `app/core/services/export_service.py` (new)
+- `app/core/services/__init__.py` (update — export ExportService)
+- `app/utils/csv_exporter.py` (new)
+- `app/utils/__init__.py` (update — export csv_exporter)
 - `app/infrastructure/api/endpoints/export.py` (new)
-- `app/infrastructure/api/routers.py` (update — add export router)
-- `app/main.py` (update — include export router)
+- `app/infrastructure/api/endpoints/__init__.py` (update — export router)
+- `app/infrastructure/api/routers.py` (update — include export router)
 
-**Estimated scope:** Medium (2-3 files)
+**Estimated scope:** Medium (5-7 files)
 
 ---
 
-### Checkpoint: Full Upload → Export Flow ✅
+### Checkpoint: Full Upload → Export Flow
 
-- [ ] Full E2E flow: `POST /token` → `POST /upload` → `GET /export` works
+- [ ] E2E flow: `POST /token` → `POST /upload` → `GET /export` works
 - [ ] Data integrity: uploaded data matches exported data
-- [ ] Pagination works: `GET /export?skip=10&limit=50` returns correct page
+- [ ] Pagination works: `GET /export?skip=10&limit=50` returns the correct page
 - [ ] `ruff check .` and `mypy .` pass
 - [ ] **Review with human before proceeding**
 

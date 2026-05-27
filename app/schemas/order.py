@@ -6,6 +6,7 @@ shapes and RFC 7807 error details.
 
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -47,7 +48,7 @@ class OrderResponseSchema(BaseModel):
     customer_id: UUID
     status: str
     items: list[OrderItemResponseSchema]
-    created_at: str
+    created_at: datetime
 
     model_config = {"from_attributes": True}
 

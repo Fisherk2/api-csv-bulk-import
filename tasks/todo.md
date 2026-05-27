@@ -94,12 +94,17 @@
 
 ## Phase 5: Export Vertical Slice
 
-- [ ] **T18** — /export Endpoint — `GET /export` with JSON/CSV format negotiation, pagination (`skip`/`limit`), auth required
+> **Spec:** [specs/P5-EXPORT-SLICE.md](../specs/P5-EXPORT-SLICE.md)
+> **Goal:** Authenticated `GET /export` returns orders in JSON or CSV with pagination. Read-only — no new DB changes.
+
+- [ ] **T18** — Export Service + CSV Serializer + `/export` Endpoint — `ExportService` (DIP, zero framework), `csv_exporter` (pure utility), `GET /export` with `?format=json|csv`, pagination (`skip`/`limit`), auth required
 
 ### ✅ Checkpoint: Full Upload → Export Flow
 - [ ] Full E2E flow: `POST /token` → `POST /upload` → `GET /export` works
 - [ ] Data integrity: uploaded data matches exported data
+- [ ] Pagination works: `GET /export?skip=10&limit=50` returns correct page
 - [ ] `ruff check .` and `mypy .` pass
+- [ ] `app/core/services/export_service.py` and `app/utils/csv_exporter.py` have zero framework imports
 
 ---
 
