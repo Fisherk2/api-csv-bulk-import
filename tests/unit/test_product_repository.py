@@ -91,6 +91,17 @@ class TestProductRepositoryCRUD:
         assert len(created) == 3
 
     @pytest.mark.asyncio
+    async def test_create_batch_empty(self, test_db_session) -> None:
+        """create_batch with empty list must return empty list."""
+        from app.infrastructure.repositories.product_repository import (
+            ProductRepository,
+        )
+
+        repo = ProductRepository(session=test_db_session)
+        result = await repo.create_batch([])
+        assert result == []
+
+    @pytest.mark.asyncio
     async def test_create_batch_duplicate_handling(self, test_db_session) -> None:
         """create_batch must skip duplicate IDs and insert unique ones."""
         from uuid import uuid4

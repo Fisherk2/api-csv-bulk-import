@@ -185,6 +185,45 @@ class TestUploadEndpointJSON:
         )
         assert response.status_code == 400
 
+    async def test_json_upload_invalid_body_400(self) -> None:
+        """Raw non-JSON body must return 400."""
+        response = await self.auth_client.post(
+            "/upload",
+            content="this is not json",
+            headers={
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            },
+        )
+        assert response.status_code == 400
+
+    async def test_json_upload_orders_not_list_400(self) -> None:
+        """orders field that is not a list must return 400."""
+        response = await self.auth_client.post(
+            "/upload",
+            json={"orders": "not-a-list-at-all"},
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        assert response.status_code == 400
+
+    async def test_json_upload_batch_too_large_413(self) -> None:
+        """Upload with >MAX_BATCH_SIZE orders must return 413."""
+        from app.config import settings
+
+        many_orders = [
+            {
+                "customer_id": str(uuid4()),
+                "items": [{"product_id": str(uuid4()), "quantity": 1, "price": 10.0}],
+            }
+            for _ in range(settings.MAX_BATCH_SIZE + 1)
+        ]
+        response = await self.auth_client.post(
+            "/upload",
+            json={"orders": many_orders},
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        assert response.status_code == 413
+
 
 @pytest.mark.asyncio
 class TestUploadEndpointCSV:
@@ -258,6 +297,103 @@ class TestUploadEndpointCSV:
             },
         )
         assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+class TestUploadEndpointCSVEdgeCases:
+    """CSV-specific edge cases for /upload."""
+
+    @pytest.fixture(autouse=True)
+    async def _setup(self, test_db_session, test_user):
+        from app.core.entities.customer import Customer
+        from app.core.entities.product import Product
+        from app.infrastructure.repositories.customer_repository import (
+            CustomerRepository,
+        )
+        from app.infrastructure.repositories.product_repository import (
+            ProductRepository,
+        )
+
+        cust_repo = CustomerRepository(session=test_db_session)
+        prod_repo = ProductRepository(session=test_db_session)
+        self.csv_customer = await cust_repo.create(
+            Customer(name="CSV Edge", email="csv-edge@example.com")
+        )
+        self.product = await prod_repo.create(
+            Product(name="Edge Widget", price=10.0, stock=100)
+        )
+
+        from httpx import ASGITransport, AsyncClient
+
+        from app.infrastructure.database.session import get_db
+        from app.main import create_app
+
+        self._app = create_app()
+
+        async def override_get_db():
+            yield test_db_session
+
+        self._app.dependency_overrides[get_db] = override_get_db
+
+        client = AsyncClient(
+            transport=ASGITransport(app=self._app), base_url="http://test"
+        )
+        login_resp = await client.post(
+            "/token",
+            data={"username": test_user["username"], "password": test_user["password"]},
+        )
+        token = login_resp.json()["access_token"]
+        self.auth_client = client
+        self.token = token
+        yield
+        await self.auth_client.aclose()
+        self._app.dependency_overrides.clear()
+
+    async def test_csv_upload_malformed_content_400(self) -> None:
+        """CSV with missing required columns must return 400."""
+        import io
+
+        csv_content = "a,b\n1,2\n"
+        response = await self.auth_client.post(
+            "/upload",
+            files={
+                "file": (
+                    "orders.csv",
+                    io.BytesIO(csv_content.encode()),
+                    "text/csv",
+                )
+            },
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        assert response.status_code == 400
+
+    async def test_csv_upload_batch_too_large_413(self) -> None:
+        """CSV upload with >MAX_BATCH_SIZE rows must return 413."""
+        import io
+
+        from app.config import settings
+
+        pid = str(self.product.id)
+        header = "customer_id,customer_name,customer_email,product_id,quantity,price\n"
+        # Use unique emails so each row becomes its own order
+        rows = [
+            f"cid-{i},User {i},user{i}@example.com,{pid},1,10.0"
+            for i in range(settings.MAX_BATCH_SIZE + 1)
+        ]
+        csv_content = header + "\n".join(rows)
+
+        response = await self.auth_client.post(
+            "/upload",
+            files={
+                "file": (
+                    "orders.csv",
+                    io.BytesIO(csv_content.encode()),
+                    "text/csv",
+                )
+            },
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        assert response.status_code == 413
 
 
 @pytest.mark.asyncio

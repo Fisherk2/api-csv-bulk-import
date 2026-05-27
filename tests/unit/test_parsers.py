@@ -58,6 +58,36 @@ class TestCSVParser:
         bob_order = [o for o in orders if o["customer_id"] == "cid-2"][0]
         assert len(bob_order["items"]) == 1
 
+    def test_parse_csv_malformed_dialect(self) -> None:
+        """CSV with unusual quoting must still parse."""
+        from app.utils.csv_parser import parse_csv
+
+        content = "a,b\n1,'hello world'\n"
+        rows = parse_csv(content)
+        assert len(rows) == 1
+        assert rows[0]["a"] == "1"
+        assert rows[0]["b"] == "'hello world'"
+
+    def test_parse_csv_empty_row_skipped(self) -> None:
+        """CSV with whitespace-only row must raise ValueError."""
+        from app.utils.csv_parser import parse_csv
+
+        try:
+            parse_csv("col1,col2\nval1,val2\n   ,   \n")
+            raise AssertionError("Should have raised")
+        except ValueError:
+            pass
+
+    def test_parse_csv_to_orders_missing_columns(self) -> None:
+        """CSV missing required columns must raise ValueError."""
+        from app.utils.csv_parser import parse_csv_to_orders
+
+        try:
+            parse_csv_to_orders("a,b\n1,2\n")
+            raise AssertionError("Should have raised")
+        except ValueError as exc:
+            assert "missing required columns" in str(exc).lower()
+
 
 class TestJSONParser:
     """JSON parser must handle valid and invalid JSON content."""
@@ -96,6 +126,23 @@ class TestJSONParser:
 
         try:
             parse_json('{"orders": "not-a-list"}')
+            raise AssertionError("Should have raised")
+        except ValueError:
+            pass
+
+    def test_parse_json_already_dict(self) -> None:
+        """Passing an already-parsed dict must work."""
+        from app.utils.json_parser import parse_json
+
+        result = parse_json({"orders": [{"customer_id": "abc", "items": []}]})
+        assert len(result) == 1
+
+    def test_parse_json_not_object(self) -> None:
+        """Non-dict value must raise ValueError."""
+        from app.utils.json_parser import parse_json
+
+        try:
+            parse_json(["not", "a", "dict"])
             raise AssertionError("Should have raised")
         except ValueError:
             pass

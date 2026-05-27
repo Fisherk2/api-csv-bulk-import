@@ -220,6 +220,17 @@ class TestOrderRepositoryCRUD:
         created = await order_repo.create_batch(orders)
         assert len(created) == 2
 
+    @pytest.mark.asyncio
+    async def test_create_batch_empty(self, test_db_session) -> None:
+        """create_batch with empty list must return empty list."""
+        from app.infrastructure.repositories.order_repository import (
+            OrderRepository,
+        )
+
+        order_repo = OrderRepository(session=test_db_session)
+        result = await order_repo.create_batch([])
+        assert result == []
+
 
 class TestOrderRepositoryInterface:
     """IOrderRepository must be an ABC with all abstract methods."""
