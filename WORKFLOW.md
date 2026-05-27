@@ -37,7 +37,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P2: Auth Slice** | 2 days | 2026-05-27 | 2026-05-28 | ✅ Completed | DB → User → JWT → `/token` + `GET /` health | ✅ Auth works |
 | **P3: Product Slice** | 1 day | 2026-05-26 | 2026-05-26 | ✅ Completed | Product entity → model → repo | ✅ Tests pass |
 | **P4: Upload Slice** | 3 days | 2026-05-28 | 2026-05-26 | ✅ Completed | Customer → Order → Validation → `/upload` | ✅ Upload works |
-| **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ❌ | `/export` with JSON/CSV | ✅ Full flow works |
+| **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | 🔵 Spec Ready | `/export` with JSON/CSV | ✅ Full flow works |
 | **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | ❌ | Unit → Integration → E2E (≥80%) | ✅ Coverage ≥80% |
 | **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ❌ | Docker prod + CI/CD | — |
 | **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ❌ | Docs, user guide, retrospective | ✅ All done |
@@ -210,6 +210,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 ### Phase P5: Export Vertical Slice
 
 > **Objective:** An authenticated user can do `GET /export` and receive data in JSON or CSV.
+> **Status:** 🔵 Spec Ready — ready for specs definition
 > **Detailed plan:** [tasks/plan.md — Task 18](tasks/plan.md)
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
@@ -301,7 +302,7 @@ graph TD
     T16 --> T17[T17\n/upload Endpoint\n✅]
     T07 --> T17
 
-    T13 --> T18[T18\n/export Endpoint\n❌]
+    T13 --> T18[T18\n/export Endpoint\n🔵 Spec Ready]
     T07 --> T18
 
     T14 --> T19[T19\nUnit Tests — Validation + Schemas\n❌]
