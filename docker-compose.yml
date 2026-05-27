@@ -17,8 +17,8 @@ services:
       - "${PORT:-8000}:8000"
     environment:
       # Database — uses Docker Compose internal network (hostname: db)
-      - DATABASE_URL=postgresql+asyncpg://postgres:change-me@db:5432/api_csv_import
-      - SYNC_DATABASE_URL=postgresql://postgres:change-me@db:5432/api_csv_import
+      - DATABASE_URL=postgresql+asyncpg://postgres:${DB_PASSWORD:-change-me}@db:5432/api_csv_import
+      - SYNC_DATABASE_URL=postgresql://postgres:${DB_PASSWORD:-change-me}@db:5432/api_csv_import
       # Auth
       - SECRET_KEY=${SECRET_KEY:-change-me-please-use-a-real-secret-in-production}
       - ALGORITHM=HS256
@@ -54,7 +54,7 @@ services:
     container_name: api-csv-import-db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: change-me
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pimpumpapas}
       POSTGRES_DB: api_csv_import
     ports:
       - "5432:5432"

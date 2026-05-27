@@ -71,7 +71,7 @@ class TestRateLimitExceeded:
         assert resp.status_code == 429
 
     async def test_rate_limit_exceeded_response_format(self, client, test_user, monkeypatch) -> None:
-        """429 responses must contain an error message about rate limit."""
+        """429 responses must follow RFC 7807 Problem Details format."""
         import app.config as cfg
         monkeypatch.setattr(cfg.settings, "TOKEN_RATE_LIMIT", 5)
 
@@ -90,8 +90,9 @@ class TestRateLimitExceeded:
 
         assert resp.status_code == 429
         data = resp.json()
-        assert "error" in data
-        assert "Rate limit exceeded" in data["error"]
+        assert data["title"] == "Rate Limit Exceeded"
+        assert data["status"] == 429
+        assert "Rate limit exceeded" in data["detail"]
 
 
 class TestRateLimitDoesNotInterfere:

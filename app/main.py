@@ -6,14 +6,35 @@ health check endpoint, rate limiting, and all API routers.
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import _rate_limit_exceeded_handler
+from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.infrastructure.api.routers import api_router
 from app.infrastructure.rate_limiter import limiter
+
+
+def _rate_limit_exceeded_handler(
+    request: Request, exc: RateLimitExceeded
+) -> JSONResponse:
+    """Return RFC 7807 Problem Details for rate limit exceeded errors.
+
+    Overrides slowapi's default handler to match the project's error format.
+    """
+    response = JSONResponse(
+        status_code=429,
+        content={
+            "type": "about:blank",
+            "title": "Rate Limit Exceeded",
+            "status": 429,
+            "detail": f"Rate limit exceeded: {exc.detail}",
+        },
+    )
+    return request.app.state.limiter._inject_headers(  # type: ignore[no-any-return]
+        response, request.state.view_rate_limit
+    )
 
 
 def create_app() -> FastAPI:

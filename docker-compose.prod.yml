@@ -26,6 +26,9 @@ services:
     restart: unless-stopped
 
   db:
+    # Production credentials — must be set via environment or .env
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     # Resource limits
     deploy:
       resources:
