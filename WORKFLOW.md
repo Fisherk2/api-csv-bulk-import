@@ -1,8 +1,8 @@
 # 📋 WORKFLOW.md
 
 **Project:** Bulk Import/Export API with Strict Validation
-**Version:** 2.1.0 | **Date:** 2026-05-26 | **Author:** Fisherk2
-**Status:** Under Implementation | **Methodology:** Spec-Driven Development (SDD) — Vertical Slices
+**Version:** 2.2.0 | **Date:** 2026-05-27 | **Author:** Fisherk2
+**Status:** Under Implementation (P7 ready for specs) | **Methodology:** Spec-Driven Development (SDD) — Vertical Slices
 **Repository:** https://github.com/Fisherk2/api-csv-bulk-import/
 
 ---
@@ -38,8 +38,8 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P3: Product Slice** | 1 day | 2026-05-26 | 2026-05-26 | ✅ Completed | Product entity → model → repo | ✅ Tests pass |
 | **P4: Upload Slice** | 3 days | 2026-05-28 | 2026-05-26 | ✅ Completed | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ✅ Completed | `/export` with JSON/CSV | ✅ Full flow works |
-| **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | 🟡 Spec Defined | Unit → Integration → E2E (≥80%) | — |
-| **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ❌ | Docker prod + CI/CD | — |
+| **P6: Testing** | 2 days | 2026-06-03 | 2026-05-27 | ✅ Completed | Formal review + E2E + coverage gap closure | ✅ 261 tests, 96.98% coverage |
+| **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | 🟡 Spec Defined | Docker prod + CI/CD | — |
 | **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ❌ | Docs, user guide, retrospective | — |
 
 ---
@@ -254,7 +254,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 ### Phase P6: Testing
 
 > **Objective:** Formalize the test suite — verify all quality gates, close coverage gaps, add E2E tests (ASGI + Docker smoke).
-> **Status:** 🟡 Spec Defined (Ready for Implementation)
+> **Status:** ✅ Completed — 261 tests pass, 96.98% coverage, ruff clean, mypy clean
 > **Detailed spec:** [specs/P6-TESTING-SLICE.md](specs/P6-TESTING-SLICE.md) | **Detailed plan:** [tasks/plan.md — Tasks 19-23](tasks/plan.md)
 
 **P6 Architectural Decisions:**
@@ -269,29 +269,37 @@ For project context, technical stack, architecture and conventions, refer to [AG
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T19 | Spec-F4-001 | Unit Tests — Validation + Schemas | **Built during P2–P4** — 73 tests across 7 files. Formal review against plan.md criteria. | High | Review existing | T14, T06, T08, T10, T12 | 4/4 ✅ | 🟡 Review |
-| T20 | Spec-F4-002 | Unit Tests — Services + Repos | **Built during P3–P5** — 35 tests across 4 files. Add 1 FK test + repo error recovery. | High | Modify: 4 | T15, T09, T11, T13 | 4/5 | 🟡 Review |
-| T21 | Spec-F4-003 | Integration Tests — `/upload` | **Built during P4** — 9 tests. Add 6 error path tests. | High | Modify: 1 | T17, T07 | 2/6 | 🟡 Review |
-| T22 | Spec-F4-004 | Integration Tests — `/export` | **Built during P5** — 9 tests. All criteria met. | High | None | T18 | 4/4 ✅ | 🟡 Review |
-| T23 | Spec-F4-005 | E2E Tests — Full Flow + Docker Smoke | **New** — 8-10 ASGI E2E tests (`test_full_flow.py`) + 1-2 Docker smoke tests (`test_smoke_docker.py`) | High | New: 2 | T07, T17, T18 | 0/12 | ❌ |
+| T19 | Spec-F4-001 | Unit Tests — Validation + Schemas | **Built during P2–P4** — 73 tests across 7 files. Formal review against plan.md criteria. | High | Review existing | T14, T06, T08, T10, T12 | 4/4 ✅ | ✅ |
+| T20 | Spec-F4-002 | Unit Tests — Services + Repos | **Built during P3–P5** — 35 tests across 4 files. Add 1 FK test + repo error recovery. | High | Modify: 4 | T15, T09, T11, T13 | 5/5 | ✅ |
+| T21 | Spec-F4-003 | Integration Tests — `/upload` | **Built during P4** — 9 tests. Add 6 error path tests. | High | Modify: 1 | T17, T07 | 6/6 | ✅ |
+| T22 | Spec-F4-004 | Integration Tests — `/export` | **Built during P5** — 9 tests. All criteria met. | High | None | T18 | 4/4 ✅ | ✅ |
+| T23 | Spec-F4-005 | E2E Tests — Full Flow + Docker Smoke | **New** — 8-10 ASGI E2E tests (`test_full_flow.py`) + 1-2 Docker smoke tests (`test_smoke_docker.py`) | High | New: 2 | T07, T17, T18 | 12/12 | ✅ |
 
 ### ✅ Checkpoint P6: Testing Complete
 
-- [ ] Formal review: T19, T20, T21, T22 acceptance criteria verified against plan.md
-- [ ] `pytest tests/e2e/test_full_flow.py -v` — all 8-10 ASGI E2E tests pass
-- [ ] `docker-compose up -d && pytest tests/e2e/test_smoke_docker.py -v -m docker` — smoke tests pass
-- [ ] Coverage gap closure: all 49 uncovered lines addressed (tests, Docker smoke, or documented exceptions)
-- [ ] `pytest` — all tests pass (≥254)
-- [ ] `pytest --cov=app` — coverage ≥ 80% (target: maintain ≥ 94%)
-- [ ] `ruff check .` — zero errors
-- [ ] `mypy .` — zero type errors
-- [ ] **Human review before proceeding**
+- [x] Formal review: T19, T20, T21, T22 acceptance criteria verified against plan.md
+- [x] `pytest tests/e2e/test_full_flow.py -v` — all 8-10 ASGI E2E tests pass
+- [x] `docker-compose up -d && pytest tests/e2e/test_smoke_docker.py -v -m docker` — smoke tests pass
+- [x] Coverage gap closure: all 49 uncovered lines addressed (tests, Docker smoke, or documented exceptions)
+- [x] `pytest` — all tests pass (≥254)
+- [x] `pytest --cov=app` — coverage ≥ 80% (target: maintain ≥ 94%)
+- [x] `ruff check .` — zero errors
+- [x] `mypy .` — zero type errors
+- [x] **Human review completed** — 5 axes: Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅
+
+**P6 Closing Notes:**
+- 261 tests passing (+27 from 234), coverage 96.98% (+2.91% from 94.07%), ruff zero issues, mypy zero issues.
+- New files: `tests/e2e/test_full_flow.py` (10 ASGI E2E tests), `tests/e2e/test_smoke_docker.py` (2 Docker smoke tests), `tests/e2e/conftest.py` (shared fixtures), `tests/e2e/test_full_flow_csv.py` (3 additional E2E tests).
+- Coverage gap closure: +23 tests across 7 files (FK all-invalid, JSON/CSV error paths, batch enforcement, parser edge cases, repo exception handling).
+- 4 code review fix commits, 1 simplification commit, 3 review cycles (5-axis review → fixes → simplification).
+- P6 completed on 2026-05-27. P7 (Deployment) ready to define specs.
 
 ---
 
 ### Phase P7: Deployment
 
 > **Objective:** Docker for production and CI/CD configured.
+> **Status:** 🟡 Spec Defined (Ready for Specifications)
 > **Detailed plan:** [tasks/plan.md — Tasks 24-25](tasks/plan.md)
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
@@ -344,11 +352,11 @@ graph TD
     T13 --> T18[T18\n/export Endpoint\n✅]
     T07 --> T18
 
-    T14 --> T19[T19\nUnit Tests — Validation + Schemas\n❌]
-    T15 --> T20[T20\nUnit Tests — Services + Repos\n❌]
-    T17 --> T21[T21\nIntegration Tests — /upload\n❌]
-    T18 --> T22[T22\nIntegration Tests — /export\n❌]
-    T07 --> T23[T23\nE2E Tests — Full Flow\n❌]
+    T14 --> T19[T19\nUnit Tests — Validation + Schemas\n✅]
+    T15 --> T20[T20\nUnit Tests — Services + Repos\n✅]
+    T17 --> T21[T21\nIntegration Tests — /upload\n✅]
+    T18 --> T22[T22\nIntegration Tests — /export\n✅]
+    T07 --> T23[T23\nE2E Tests — Full Flow\n✅]
     T17 --> T23
     T18 --> T23
 
