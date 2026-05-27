@@ -105,10 +105,13 @@
 - [x] Pagination works: `GET /export?skip=10&limit=50` returns correct page
 - [x] `ruff check .` and `mypy .` pass
 - [x] `app/core/services/export_service.py` and `app/utils/csv_exporter.py` have zero framework imports
+- [x] Code review passed (5 axes) + simplification applied (`list[Any]`→`list[Order]`)
+
+**Summary:** 234 tests, 94.07% coverage, ruff clean, mypy clean. 6 commits (b70611c→9669fb2). P6 ready for specs.
 
 ---
 
-## Phase 6: Testing
+## Phase 6: Testing 🔵 Ready for Specs
 
 - [ ] **T19** — Unit Tests — Validation Service + Schemas (`tests/unit/test_validation_service.py`, `test_schemas.py`)
 - [ ] **T20** — Unit Tests — Order Service + Repositories (`tests/unit/test_order_service.py`, `test_repositories.py`)

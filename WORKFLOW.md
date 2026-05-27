@@ -38,7 +38,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P3: Product Slice** | 1 day | 2026-05-26 | 2026-05-26 | ✅ Completed | Product entity → model → repo | ✅ Tests pass |
 | **P4: Upload Slice** | 3 days | 2026-05-28 | 2026-05-26 | ✅ Completed | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ✅ Completed | `/export` with JSON/CSV | ✅ Full flow works |
-| **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | ❌ | Unit → Integration → E2E (≥80%) | ✅ Coverage ≥80% |
+| **P6: Testing** | 2 days | 2026-06-03 | 2026-06-04 | 🔵 Ready for Specs | Unit → Integration → E2E (≥80%) | — |
 | **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ❌ | Docker prod + CI/CD | — |
 | **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ❌ | Docs, user guide, retrospective | ✅ All done |
 
@@ -210,7 +210,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 ### Phase P5: Export Vertical Slice
 
 > **Objective:** An authenticated user can do `GET /export` and receive data in JSON or CSV.
-> **Status:** ✅ Completed — 232 tests pass, 94.06% coverage, ruff clean, mypy clean
+> **Status:** ✅ Completed — 234 tests pass, 94.07% coverage, ruff clean, mypy clean
 > **Detailed spec:** [specs/P5-EXPORT-SLICE.md](specs/P5-EXPORT-SLICE.md) | **Detailed plan:** [tasks/plan.md — Task 18](tasks/plan.md)
 
 **P5 Architectural Decisions:**
@@ -238,20 +238,23 @@ For project context, technical stack, architecture and conventions, refer to [AG
 - [x] Pagination works: `GET /export?skip=10&limit=50` returns the correct page
 - [x] `ruff check .` and `mypy .` pass without errors
 - [x] `app/core/services/export_service.py` and `app/utils/csv_exporter.py` have zero framework imports
-- [ ] **Human review before proceeding to P6**
+- [x] **Human review + code review + simplification completed before proceeding to P6**
 
 **P5 Closing Notes:**
-- 232 tests passing, coverage 94.06%, ruff zero issues, mypy zero issues.
-- 3 commits on `feature/api-import-export` (c825f66 → 50daeeb).
-- P5 completed on 2026-05-26. P6 (Testing) ready to start.
+- 234 tests passing, coverage 94.07%, ruff zero issues, mypy zero issues.
+- 6 commits on `feature/api-import-export` (b70611c → 9669fb2): spec → implementation → code review fix → simplification.
+- P5 completed on 2026-05-26. P6 (Testing) ready to define specs.
 - **Technical decisions:** Format via query param `?format=json` (default) or `?format=csv`; flat CSV with one row per order item (7 columns); `ExportService` depends on `IOrderRepository` only (DIP); `csv_exporter.py` is a pure utility with zero framework imports; raw data stream (no envelope/wrapper); no total count in MVP; `OrderResponseSchema.created_at` changed from `str` to `datetime` for proper Pydantic `from_attributes` compatibility.
-- **Files created:** ExportService, csv_exporter, export endpoint, and 2 test files (unit + integration).
+- **Code review (5 axes):** Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅.
+- **Post-review fixes:** `_get_export_service` async→sync; `limit>1000` and `limit=0` boundary tests; `OrderService` export consistency; `export_orders_raw` return type `list[Any]`→`list[Order]`.
+- **Files created:** ExportService, csv_exporter, export endpoint, and 3 test files (unit + integration).
 
 ---
 
 ### Phase P6: Testing
 
 > **Objective:** Coverage ≥ 80%, all tests passing.
+> **Status:** 🔵 Ready for Specs
 > **Detailed plan:** [tasks/plan.md — Tasks 19-23](tasks/plan.md)
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
@@ -324,7 +327,7 @@ graph TD
     T16 --> T17[T17\n/upload Endpoint\n✅]
     T07 --> T17
 
-    T13 --> T18[T18\n/export Endpoint\n🔵 Spec Ready]
+    T13 --> T18[T18\n/export Endpoint\n✅]
     T07 --> T18
 
     T14 --> T19[T19\nUnit Tests — Validation + Schemas\n❌]
