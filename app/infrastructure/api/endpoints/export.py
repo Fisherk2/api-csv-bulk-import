@@ -21,8 +21,11 @@ from app.schemas.user import UserResponseSchema
 router = APIRouter(tags=["export"])
 
 
-async def _get_export_service(db: AsyncSession) -> ExportService:
-    """Build an ExportService with the concrete OrderRepository."""
+def _get_export_service(db: AsyncSession) -> ExportService:
+    """Build an ExportService with the concrete OrderRepository.
+
+    Synchronous factory — no I/O needed to construct the service.
+    """
     return ExportService(order_repo=OrderRepository(session=db))
 
 
@@ -55,7 +58,7 @@ async def export_orders(
             detail=f"Unsupported format: '{fmt}'. Use 'json' or 'csv'.",
         )
 
-    service = await _get_export_service(db)
+    service = _get_export_service(db)
 
     if fmt == "json":
         data = await service.export_orders_json(skip=skip, limit=limit)

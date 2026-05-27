@@ -147,6 +147,22 @@ class TestExportEndpoint:
         data = response.json()
         assert data == []
 
+    async def test_export_limit_exceeded(self) -> None:
+        """GET /export?limit=1001 must return 422 (exceeds max 1000)."""
+        response = await self.client.get(
+            "/export?limit=1001",
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        assert response.status_code == 422
+
+    async def test_export_limit_zero(self) -> None:
+        """GET /export?limit=0 must return 422 (below min 1)."""
+        response = await self.client.get(
+            "/export?limit=0",
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        assert response.status_code == 422
+
     @staticmethod
     async def _create_auth_client(test_db_session, test_user):
         """Create authenticated httpx client with test DB override."""
