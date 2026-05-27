@@ -1,8 +1,8 @@
 # 📋 WORKFLOW.md
 
 **Project:** Bulk Import/Export API with Strict Validation
-**Version:** 2.2.0 | **Date:** 2026-05-27 | **Author:** Fisherk2
-**Status:** Under Implementation (P7 ready for specs) | **Methodology:** Spec-Driven Development (SDD) — Vertical Slices
+**Version:** 2.3.0 | **Date:** 2026-05-27 | **Author:** Fisherk2
+**Status:** Under Implementation (P7 ready for implementation) | **Methodology:** Spec-Driven Development (SDD) — Vertical Slices
 **Repository:** https://github.com/Fisherk2/api-csv-bulk-import/
 
 ---
@@ -39,7 +39,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P4: Upload Slice** | 3 days | 2026-05-28 | 2026-05-26 | ✅ Completed | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ✅ Completed | `/export` with JSON/CSV | ✅ Full flow works |
 | **P6: Testing** | 2 days | 2026-06-03 | 2026-05-27 | ✅ Completed | Formal review + E2E + coverage gap closure | ✅ 261 tests, 96.98% coverage |
-| **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | 🟡 Spec Defined | Docker prod + CI/CD | — |
+| **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | 🔵 Ready for Implementation | Docker prod + CI/CD + Rate Limiting | — |
 | **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ❌ | Docs, user guide, retrospective | — |
 
 ---
@@ -298,27 +298,59 @@ For project context, technical stack, architecture and conventions, refer to [AG
 
 ### Phase P7: Deployment
 
-> **Objective:** Docker for production and CI/CD configured.
-> **Status:** 🟡 Spec Defined (Ready for Specifications)
-> **Detailed plan:** [tasks/plan.md — Tasks 24-25](tasks/plan.md)
+> **Objective:** Containerized, production-ready deployment with multi-stage Dockerfile, Nginx reverse proxy, rate limiting, and automated CI/CD quality gates.
+> **Status:** 🔵 Ready for Implementation
+> **Detailed spec:** [specs/P7-DEPLOYMENT-SLICE.md](specs/P7-DEPLOYMENT-SLICE.md) | **Detailed plan:** [tasks/plan.md — Tasks 24-25](tasks/plan.md)
+
+**P7 Architectural Decisions:**
+- **AD-P7-01:** Multi-stage Dockerfile — `python:3.12-slim` build stage + production stage as non-root user, target < 300 MB
+- **AD-P7-02:** Production stack — API + PostgreSQL + Nginx reverse proxy with security headers
+- **AD-P7-03:** Docker Compose dev vs prod separation — `docker-compose.yml` (base) + `docker-compose.prod.yml` (overrides)
+- **AD-P7-04:** Health checks on all services (API, PostgreSQL, Nginx) with `depends_on: condition: service_healthy`
+- **AD-P7-05:** Rate limiting via `slowapi` — global 100 req/min, `/token` 20 req/min, RFC 7807 429 error
+- **AD-P7-06:** GitHub Actions CI with PostgreSQL 16 service container — parallel lint+type-check, test with coverage gate (≥80%)
+- **AD-P7-07:** `.dockerignore` excludes `.git`, caches, tests, docs, and virtual environments from build context
+
+**P7 Notes:**
+- T25 (Rate Limiting) is new — deferred from P4 (AD-P4-08), confirmed by user as P7 scope. `slowapi` already in `requirements.txt`.
+- T26 was T25 in the original plan — renumbered due to T25 insertion. Content unchanged.
+- Entrypoint script (`scripts/entrypoint.sh`) runs `alembic upgrade head` before starting uvicorn.
+- Nginx handles `client_max_body_size 10m` and adds security headers.
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T24 | Spec-F1-004 | Docker Dev Setup | Multi-stage `Dockerfile`, `docker-compose.yml` (PostgreSQL + API) | Medium | New: 3 | T03, T17 | 0/6 | ❌ |
-| T25 | Spec-F5-001 + Spec-F5-002 | Docker Prod + CI/CD | `docker-compose.prod.yml`, `.github/workflows/ci.yml` | Medium | New: 2 | T24, T23 | 0/5 | ❌ |
+| T24 | Spec-F1-004 | Docker Dev Setup | Multi-stage `Dockerfile`, `.dockerignore`, `docker-compose.yml` with `api` + `db` services, entrypoint script | Medium | New: 4 | T03, T17 | 0/6 | ❌ |
+| T25 | *New* (AD-P4-08) | Rate Limiting Integration | `slowapi` middleware in `main.py`, global + `/token` rate limits, RFC 7807 429, rate limit headers, tests | Medium | Modify: 3 | T07, T17 | 0/5 | ❌ |
+| T26 | Spec-F5-001 + Spec-F5-002 | Docker Prod + CI/CD | `docker-compose.prod.yml` (Nginx + resource limits), `.github/workflows/ci.yml` (lint + type-check + test with PostgreSQL) | Medium | New: 3 | T24, T25, T23 | 0/8 | ❌ |
+
+### ✅ Checkpoint P7: Deployment Complete
+
+- [ ] `docker-compose up` — both `api` and `db` services healthy
+- [ ] `curl http://localhost:8000/` returns 200
+- [ ] `docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d` — all 3 services (api, db, nginx) healthy
+- [ ] `curl http://localhost:80/` returns 200 via Nginx with security headers
+- [ ] Rate limiting active: 429 returned on exceeded limits with RFC 7807 format
+- [ ] Multi-stage Dockerfile produces image < 300 MB, runs as non-root user
+- [ ] `.dockerignore` present and effective
+- [ ] CI pipeline passes on push: lint ✅, type-check ✅, test ✅
+- [ ] CI fails when coverage < 80%
+- [ ] `ruff check .` and `mypy .` pass with zero errors
+- [ ] All existing 261 tests pass with PostgreSQL (no regressions)
+- [ ] Domain layer (`app/core/`) has zero external dependencies
+- [ ] **Human review completed** — 5 axes: Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅)
 
 ---
 
 ### Phase P8: Closure
 
 > **Objective:** Final documentation, user guide, retrospective.
-> **Detailed plan:** [tasks/plan.md — Tasks 26-28](tasks/plan.md)
+> **Detailed plan:** [tasks/plan.md — Tasks 27-29](tasks/plan.md)
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T26 | Spec-F6-001 | Final technical documentation | Update `README.md`, `AGENTS.md`, `WORKFLOW.md` | High | Modified: 3 | T23 | 0/3 | ❌ |
-| T27 | Spec-F6-002 | User guide | `USER_GUIDE.md` with `curl` examples for all endpoints | Medium | New: 1 | T26 | 0/3 | ❌ |
-| T28 | Spec-F6-003 | Retrospective | Lessons learned, `CONTRIBUTING.md`, resolve open questions | Low | New: 1-2 | T27 | 0/3 | ❌ |
+| T27 | Spec-F6-001 | Final technical documentation | Update `README.md`, `AGENTS.md`, `WORKFLOW.md` | High | Modified: 3 | T23 | 0/3 | ❌ |
+| T28 | Spec-F6-002 | User guide | `USER_GUIDE.md` with `curl` examples for all endpoints | Medium | New: 1 | T27 | 0/3 | ❌ |
+| T29 | Spec-F6-003 | Retrospective | Lessons learned, `CONTRIBUTING.md`, resolve open questions | Low | New: 1-2 | T28 | 0/3 | ❌ |
 
 ---
 
@@ -361,11 +393,15 @@ graph TD
     T18 --> T23
 
     T03 --> T24[T24\nDocker Dev Setup\n❌]
-    T24 --> T25[T25\nDocker Prod + CI/CD\n❌]
+    T07 --> T25[T25\nRate Limiting\n❌]
+    T17 --> T25
+    T24 --> T26[T26\nDocker Prod + CI/CD\n❌]
+    T25 --> T26
+    T23 --> T26
 
-    T23 --> T26[T26\nFinal technical docs\n❌]
-    T26 --> T27[T27\nUser guide\n❌]
-    T27 --> T28[T28\nRetrospective\n❌]
+    T23 --> T27[T27\nFinal technical docs\n❌]
+    T27 --> T28[T28\nUser guide\n❌]
+    T28 --> T29[T29\nRetrospective\n❌]
 ```
 
 ---
@@ -400,10 +436,11 @@ The following table shows how each task in the vertical plan maps to the origina
 | T22 | Spec-F4-004 | Integration Tests — /export |
 | T23 | Spec-F4-005 | E2E Tests — Full Flow |
 | T24 | Spec-F1-004 | Docker Dev Setup |
-| T25 | Spec-F5-001 + Spec-F5-002 | Docker Prod + CI/CD |
-| T26 | Spec-F6-001 | Final technical documentation |
-| T27 | Spec-F6-002 | User guide |
-| T28 | Spec-F6-003 | Retrospective |
+| T25 | *New* (AD-P4-08) | Rate Limiting Integration |
+| T26 | Spec-F5-001 + Spec-F5-002 | Docker Prod + CI/CD |
+| T27 | Spec-F6-001 | Final technical documentation |
+| T28 | Spec-F6-002 | User guide |
+| T29 | Spec-F6-003 | Retrospective |
 
 ---
 

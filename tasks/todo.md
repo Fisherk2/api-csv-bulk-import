@@ -139,21 +139,22 @@
 
 ---
 
-## Phase 7: Deployment 🟡 Spec Defined (Ready for Specifications)
+## Phase 7: Deployment 🔵 Ready for Implementation
 
-> **Spec:** (pending) — `specs/P7-DEPLOYMENT-SLICE.md`
-> **Goal:** Production Docker images and CI/CD pipeline.
+> **Spec:** [specs/P7-DEPLOYMENT-SLICE.md](../specs/P7-DEPLOYMENT-SLICE.md)
+> **Goal:** Production Docker images, rate limiting, and CI/CD pipeline.
 
-- [ ] **T24** — Docker Dev Setup — Multi-stage `Dockerfile`, `docker-compose.yml` (PostgreSQL + API)
-- [ ] **T25** — Docker Prod + CI/CD — `docker-compose.prod.yml`, `.github/workflows/ci.yml`
+- [ ] **T24** — Docker Dev Setup — Multi-stage `Dockerfile`, `.dockerignore`, `docker-compose.yml` (api + db + hot-reload), `scripts/entrypoint.sh`, Makefile Docker targets
+- [ ] **T25** — Rate Limiting Integration — `slowapi` middleware with custom IP key function, global 100 req/min, `/token` 20 req/min, RFC 7807 429, tests
+- [ ] **T26** — Docker Prod + CI/CD — `docker-compose.prod.yml` with Nginx + resource limits + security headers, `.github/workflows/ci.yml` with parallel lint/type-check + PostgreSQL test
 
 ---
 
 ## Phase 8: Closure
 
-- [ ] **T26** — Final Documentation — Update `README.md`, `AGENTS.md`, `WORKFLOW.md` with completed state
-- [ ] **T27** — User Guide — `USER_GUIDE.md` with `curl` examples for all endpoints
-- [ ] **T28** — Retrospective — Lessons learned, `CONTRIBUTING.md`, resolve SPEC.md open questions
+- [ ] **T27** — Final Documentation — Update `README.md`, `AGENTS.md`, `WORKFLOW.md` with completed state
+- [ ] **T28** — User Guide — `USER_GUIDE.md` with `curl` examples for all endpoints
+- [ ] **T29** — Retrospective — Lessons learned, `CONTRIBUTING.md`, resolve SPEC.md open questions
 
 ---
 

@@ -65,11 +65,15 @@ graph TD
     T07 --> T23[T23: E2E Tests — Full Flow]
 
     T03 --> T24[T24: Docker Dev Setup]
-    T24 --> T25[T25: Docker Prod + CI/CD]
+    T07 --> T25[T25: Rate Limiting]
+    T17 --> T25
+    T24 --> T26[T26: Docker Prod + CI/CD]
+    T25 --> T26
+    T23 --> T26
 
-    T23 --> T26[T26: Final Documentation]
-    T26 --> T27[T27: User Guide]
-    T27 --> T28[T28: Retrospective]
+    T23 --> T27[T27: Final Documentation]
+    T27 --> T28[T28: User Guide]
+    T28 --> T29[T29: Retrospective]
 ```
 
 ---
@@ -902,61 +906,124 @@ Before proceeding to P7 (Deployment), verify:
 
 ### Phase 7: Deployment
 
+> **Spec:** [specs/P7-DEPLOYMENT-SLICE.md](../specs/P7-DEPLOYMENT-SLICE.md)
+> **Goal:** Docker dev setup, production stack with Nginx, rate limiting with slowapi, and CI/CD pipeline.
+
 ---
 
 #### Task 24: Docker Dev Setup
 
-**Description:** Create production-ready `Dockerfile` and `docker-compose.yml` for development. The Dockerfile uses multi-stage builds. Docker Compose starts PostgreSQL + API.
+**Description:** Create multi-stage `Dockerfile`, `.dockerignore`, complete `docker-compose.yml` for development, entrypoint script, and `Makefile` Docker targets. Replace the placeholder files with production-quality container setup.
 
 **Acceptance criteria:**
-- [ ] `Dockerfile` uses multi-stage build: builder stage (install deps) + runtime stage (copy app)
-- [ ] `Dockerfile` uses Python 3.12-slim as base image
-- [ ] `docker-compose.yml` defines `api` and `db` services
-- [ ] `db` service uses PostgreSQL 16 with health check
-- [ ] `api` service depends on `db` and waits for it to be healthy
-- [ ] `.dockerignore` excludes unnecessary files
-- [ ] `docker-compose up` starts the full stack and API responds on port 8000
+- [ ] `Dockerfile` has two stages: `build` and `production`
+- [ ] Build stage installs all dependencies from `requirements.txt` using global pip (not `--user`)
+- [ ] Production stage copies site-packages from `/usr/local/` in build stage (not `/root/.local`)
+- [ ] Production stage runs as non-root user (`appuser`, UID 1000)
+- [ ] Production stage uses `python:3.12-slim` base image
+- [ ] Image size under 300 MB
+- [ ] `.dockerignore` excludes `.git`, caches, tests, docs, and virtual environments
+- [ ] `docker-compose.yml` defines `api` service (builds from Dockerfile) and `db` service (PostgreSQL 16 Alpine)
+- [ ] `api` service depends on `db` with health check condition (`condition: service_healthy`)
+- [ ] `api` service has health check (`curl -f http://localhost:8000/`)
+- [ ] Development command: `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
+- [ ] Source code mounted as volume for hot-reload in dev
+- [ ] `DEBUG=true` environment variable for dev
+- [ ] Database migration runs on container startup via `scripts/entrypoint.sh`
+- [ ] `Makefile` has `docker-build`, `docker-up`, `docker-down`, `docker-logs` targets
 
 **Verification:**
 - [ ] `docker-compose build` — succeeds
-- [ ] `docker-compose up -d` — starts both services
+- [ ] `docker-compose up -d` — starts both services, both healthy
+- [ ] `curl http://localhost:8000/` — returns `{"status": "ok", "version": "1.0.0"}`
 - [ ] `curl http://localhost:8000/docs` — Swagger UI loads
-- [ ] `docker-compose down` — stops and removes containers
+- [ ] `docker images api-csv-bulk-import` — image size < 300 MB
+- [ ] `docker-compose down` — clean shutdown
+- [ ] `make docker-build && make docker-up && make docker-down` — all targets work
 
 **Dependencies:** Task 3 (linters), Task 17 (/upload endpoint working)
 
 **Files likely touched:**
-- `Dockerfile` (replace placeholder)
-- `docker-compose.yml` (replace placeholder)
-- `.dockerignore` (new)
+- `Dockerfile` (replace placeholder — ~60 lines)
+- `docker-compose.yml` (add api service — +20 lines)
+- `.dockerignore` (new — ~25 lines)
+- `scripts/entrypoint.sh` (new — startup script for migrations + uvicorn)
+- `Makefile` (add Docker targets — +15 lines)
 
-**Estimated scope:** Medium (3 files)
+**Estimated scope:** Medium (5 files)
 
 ---
 
-#### Task 25: Docker Prod + CI/CD
+#### Task 25: Rate Limiting Integration
 
-**Description:** Create `docker-compose.prod.yml` for production overrides and GitHub Actions CI/CD workflow for testing and deployment.
+**Description:** Integrate `slowapi` rate limiting middleware into the FastAPI application. Apply global rate limit (100 req/min) and stricter limit on `/token` endpoint (20 req/min). Add rate limit headers to responses. Use a custom key function that reads `X-Forwarded-For` for correct IP detection behind Nginx.
+
+> **Note:** This task was deferred from P4 (AD-P4-08) and confirmed by the user as P7 scope. `slowapi` already in `requirements.txt`. Without the custom key function, rate limiting behind Nginx would apply the same limit to all users (wrong IP).
 
 **Acceptance criteria:**
-- [ ] `docker-compose.prod.yml` overrides dev defaults with production settings (no debug, proper secrets, resource limits)
-- [ ] `.github/workflows/ci.yml` runs on push/PR: lint → type-check → test → coverage check
-- [ ] CI workflow uses PostgreSQL service container for integration tests
-- [ ] CI workflow fails if coverage < 80%
-- [ ] CI workflow caches pip dependencies
+- [ ] `slowapi` middleware added to FastAPI app in `main.py`
+- [ ] Custom key function `get_real_ip()` reads `X-Forwarded-For` header (falls back to `request.client.host`)
+- [ ] Global rate limit: 100 req/min per IP (configurable via `RATE_LIMIT_PER_MINUTE`)
+- [ ] `/token` endpoint has stricter limit: 20 req/min via `@limiter.limit("20/minute")`
+- [ ] `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` headers in all responses
+- [ ] Rate limiting disabled when `RATE_LIMIT_PER_MINUTE=0` (for tests)
+- [ ] RFC 7807 error on 429: `type: "about:blank"`, `title: "Too Many Requests"`
+- [ ] All existing 261 tests pass (rate limiting disabled via `RATE_LIMIT_PER_MINUTE=0`)
+- [ ] At least 2 new tests: one verifies rate limit headers are present, one verifies 429 after exceeding limit
 
 **Verification:**
-- [ ] `docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d` — starts production stack
-- [ ] CI workflow YAML is valid: `action-validator` or manual review
-- [ ] Push to branch triggers CI workflow
+- [ ] `curl -v http://localhost:8000/` — response includes `X-RateLimit-*` headers
+- [ ] Rapid requests to `/token` — returns 429 after exceeding 20 req/min with RFC 7807 format
+- [ ] `pytest` — all 261 existing tests pass, 2+ new rate limit tests pass
 
-**Dependencies:** Task 24 (Docker dev setup), Task 23 (E2E tests)
+**Dependencies:** Task 7 (JWT Auth), Task 17 (/upload endpoint)
 
 **Files likely touched:**
-- `docker-compose.prod.yml` (new)
-- `.github/workflows/ci.yml` (new)
+- `app/main.py` (add slowapi middleware, custom key function, exception handler — +25 lines)
+- `app/infrastructure/api/endpoints/auth.py` (add `@limiter.limit` decorator — +2 lines)
+- `tests/unit/test_rate_limit.py` (new — rate limiting tests)
+- `tests/conftest.py` (set `RATE_LIMIT_PER_MINUTE=0` for test env if not already)
 
-**Estimated scope:** Medium (2 files)
+**Estimated scope:** Small (3-4 files)
+
+---
+
+#### Task 26: Docker Prod + CI/CD
+
+**Description:** Create `docker-compose.prod.yml` with Nginx reverse proxy, resource limits, and production overrides. Create `.github/workflows/ci.yml` with automated quality gates (lint, type-check, test with PostgreSQL).
+
+**Acceptance criteria:**
+- [ ] `docker-compose.prod.yml` overrides `api` service: `DEBUG=false`, no source mount, `--workers 4 --no-access-log`
+- [ ] `docker-compose.prod.yml` adds `nginx` service (image: `nginx:1.27-alpine`) as reverse proxy
+- [ ] Nginx proxies requests to API on port 8000, handles `client_max_body_size 10m`
+- [ ] Nginx adds security headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`
+- [ ] Nginx forwards `X-Forwarded-For` and `X-Real-IP` for correct rate limiting
+- [ ] Resource limits on all services: API (CPU: 1.0, memory: 512M), DB (CPU: 1.0, memory: 512M), Nginx (CPU: 0.5, memory: 128M)
+- [ ] CI workflow triggers on: `push` to `main` and `feature/*` branches, `pull_request` to `main`
+- [ ] CI job `lint`: `ruff check .` with Python 3.12
+- [ ] CI job `type-check`: `mypy .` with Python 3.12
+- [ ] CI job `test`: `pytest --cov=app --cov-fail-under=80` with PostgreSQL 16 service container
+- [ ] CI uses `actions/setup-python@v5` with `cache: 'pip'`
+- [ ] CI fails if coverage < 80%
+- [ ] CI jobs `lint` and `type-check` run in parallel, `test` runs after both pass
+- [ ] Database migrations run before tests in CI (`alembic upgrade head`)
+
+**Verification:**
+- [ ] `docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d` — all 3 services healthy
+- [ ] `curl http://localhost:80/` — returns health check response via Nginx
+- [ ] `curl -I http://localhost:80/` — includes security headers
+- [ ] CI workflow YAML is valid (manual review against GitHub Actions schema)
+- [ ] Push to `feature/*` branch triggers CI workflow
+- [ ] CI passes all 3 jobs (lint ✅, type-check ✅, test ✅)
+
+**Dependencies:** Task 24 (Docker dev setup), Task 25 (Rate limiting), Task 23 (E2E tests)
+
+**Files likely touched:**
+- `docker-compose.prod.yml` (new — ~70 lines)
+- `nginx/nginx.conf` (new — ~35 lines)
+- `.github/workflows/ci.yml` (new — ~90 lines)
+
+**Estimated scope:** Medium (3 files)
 
 ---
 
@@ -964,7 +1031,7 @@ Before proceeding to P7 (Deployment), verify:
 
 ---
 
-#### Task 26: Final Documentation
+#### Task 27: Final Documentation
 
 **Description:** Update `README.md`, `AGENTS.md`, and `WORKFLOW.md` to reflect the completed implementation. Update spec statuses from ❌/🔵 to ✅.
 
@@ -990,7 +1057,7 @@ Before proceeding to P7 (Deployment), verify:
 
 ---
 
-#### Task 27: User Guide
+#### Task 28: User Guide
 
 **Description:** Create `USER_GUIDE.md` (or update existing) with practical usage examples: `curl` commands for all endpoints, Postman collection reference, and common workflows.
 
@@ -1012,7 +1079,7 @@ Before proceeding to P7 (Deployment), verify:
 
 ---
 
-#### Task 28: Retrospective
+#### Task 29: Retrospective
 
 **Description:** Document lessons learned, what went well, what could be improved, and potential future enhancements. Update `CONTRIBUTING.md` with contribution guidelines.
 
@@ -1089,7 +1156,8 @@ This plan reorganizes the original horizontal phases into vertical slices. Here'
 | Task 22 | Spec-F4-004 | Integration Tests — /export (built P5, complete) |
 | Task 23 | Spec-F4-005 | E2E Tests — Full Flow + Docker Smoke (new, 8-10 ASGI + 1-2 smoke) |
 | Task 24 | Spec-F1-004 (Docker Dev) |
-| Task 25 | Spec-F5-001 (Docker Prod) + Spec-F5-002 (CI/CD) |
-| Task 26 | Spec-F6-001 (Final Documentation) |
-| Task 27 | Spec-F6-002 (User Guide) |
-| Task 28 | Spec-F6-003 (Retrospective) |
+| Task 25 | *New* (AD-P4-08) — Rate Limiting |
+| Task 26 | Spec-F5-001 (Docker Prod) + Spec-F5-002 (CI/CD) |
+| Task 27 | Spec-F6-001 (Final Documentation) |
+| Task 28 | Spec-F6-002 (User Guide) |
+| Task 29 | Spec-F6-003 (Retrospective) |
