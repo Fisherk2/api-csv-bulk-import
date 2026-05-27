@@ -1,6 +1,57 @@
+# ── Docker Compose — Development Stack ───────────────────
+# Usage:
+#   docker-compose up -d        # Start dev stack (api + db)
+#   docker-compose down         # Stop and remove containers
+#   docker-compose logs -f      # Follow logs
+#
+# For production, combine with docker-compose.prod.yml:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
 services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-csv-import
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      # Database — uses Docker Compose internal network (hostname: db)
+      - DATABASE_URL=postgresql+asyncpg://postgres:change-me@db:5432/api_csv_import
+      - SYNC_DATABASE_URL=postgresql://postgres:change-me@db:5432/api_csv_import
+      # Auth
+      - SECRET_KEY=${SECRET_KEY:-change-me-please-use-a-real-secret-in-production}
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      # Upload limits
+      - MAX_BATCH_SIZE=1000
+      - MAX_FILE_SIZE_MB=10
+      # Rate limiting (disabled in tests, active otherwise)
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-100}
+      # CORS
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:8000}
+      # Debug mode (true for development with hot-reload)
+      - DEBUG=true
+      # App metadata
+      - APP_NAME=api-csv-bulk-import
+      - APP_VERSION=1.0.0
+    volumes:
+      # Mount source code for hot-reload in development
+      - ./app:/app/app
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+
   db:
     image: postgres:16-alpine
+    container_name: api-csv-import-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: change-me
@@ -14,6 +65,12 @@ services:
       retries: 5
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
 
 volumes:
   pgdata:
+
+networks:
+  backend:
+    driver: bridge

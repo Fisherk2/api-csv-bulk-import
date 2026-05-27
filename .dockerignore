@@ -1,0 +1,59 @@
+# ── Docker Build Context Exclusions ──────────────────────
+# Exclude everything not needed in the image to keep builds fast and small.
+
+# Version control
+.git
+.gitignore
+
+# Python caches and bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files (sensitive)
+.env
+
+# IDE and editor config
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Linter and type checker caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Test and coverage artifacts
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Build and distribution artifacts
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Documentation (not needed at runtime)
+docs/
+*.md
+
+# CI/CD and spec files
+.github/
+specs/
+tasks/
+.pre-commit-config.yaml
+
+# OS files
+.DS_Store
+Thumbs.db

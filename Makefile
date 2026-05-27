@@ -1,7 +1,7 @@
 # ── API CSV Bulk Import — Makefile ────────────────────────
 # Usage: make <target>
 
-.PHONY: help install dev lint format type-check test test-cov run migrate clean
+.PHONY: help install dev lint format type-check test test-cov run migrate clean docker-build docker-up docker-down docker-logs
 
 # Default values (override with: make dev HOST=127.0.0.1 PORT=9000)
 HOST ?= 0.0.0.0
@@ -41,6 +41,18 @@ test-cov: ## Run tests with coverage report
 migrate: ## Generate and apply Alembic migration (args: message="description")
 	alembic revision --autogenerate -m "$(message)"
 	alembic upgrade head
+
+docker-build: ## Build the Docker image
+	docker-compose build
+
+docker-up: ## Start the development stack in background
+	docker-compose up -d
+
+docker-down: ## Stop and remove all containers
+	docker-compose down
+
+docker-logs: ## Follow Docker logs
+	docker-compose logs -f
 
 clean: ## Remove Python cache files, build artifacts, and coverage reports
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
