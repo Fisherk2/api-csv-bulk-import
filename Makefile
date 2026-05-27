@@ -1,7 +1,7 @@
 # ── API CSV Bulk Import — Makefile ────────────────────────
 # Usage: make <target>
 
-.PHONY: help install dev lint format type-check test test-cov run migrate clean docker-build docker-up docker-down docker-logs
+.PHONY: help install dev lint format type-check test test-cov run migrate clean docker-build docker-up docker-down docker-logs docker-prod-build docker-prod-up docker-prod-down
 
 # Default values (override with: make dev HOST=127.0.0.1 PORT=9000)
 HOST ?= 0.0.0.0
@@ -53,6 +53,15 @@ docker-down: ## Stop and remove all containers
 
 docker-logs: ## Follow Docker logs
 	docker-compose logs -f
+
+docker-prod-build: ## Build the production Docker image
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
+
+docker-prod-up: ## Start the production stack in background
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+docker-prod-down: ## Stop the production stack
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
 
 clean: ## Remove Python cache files, build artifacts, and coverage reports
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
