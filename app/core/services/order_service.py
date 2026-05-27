@@ -15,7 +15,6 @@ from typing import Any
 from uuid import UUID
 
 from app.core.entities.order import Order, OrderItem
-from app.core.entities.validation import BatchValidationError
 from app.core.repositories.customer_repository import ICustomerRepository
 from app.core.repositories.order_repository import IOrderRepository
 from app.core.repositories.product_repository import IProductRepository

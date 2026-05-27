@@ -11,12 +11,11 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.config import settings
-from app.infrastructure.database.base import Base
-
 # Ensure all model modules are imported so Base.metadata includes all tables.
 import app.infrastructure.database.models.product  # noqa: F401
 import app.infrastructure.database.models.user  # noqa: F401
+from app.config import settings
+from app.infrastructure.database.base import Base
 
 # Alembic Config object
 config = context.config

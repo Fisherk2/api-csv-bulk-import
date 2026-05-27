@@ -6,12 +6,6 @@ an httpx.AsyncClient with dependency overrides, and a test user fixture.
 
 from __future__ import annotations
 
-# Ensure all model modules are loaded so Base.metadata includes all tables.
-# Imported here to register tables with SQLAlchemy's declarative base.
-import app.infrastructure.database.models.customer  # noqa: F401
-import app.infrastructure.database.models.order  # noqa: F401
-import app.infrastructure.database.models.product  # noqa: F401
-
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -20,6 +14,11 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+# Ensure all model modules are loaded so Base.metadata includes all tables.
+# Imported here to register tables with SQLAlchemy's declarative base.
+import app.infrastructure.database.models.customer  # noqa: F401
+import app.infrastructure.database.models.order  # noqa: F401
+import app.infrastructure.database.models.product  # noqa: F401
 from app.infrastructure.database.base import Base
 from app.infrastructure.database.session import get_db
 from app.main import create_app

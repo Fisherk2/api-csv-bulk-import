@@ -6,8 +6,9 @@ including creation in single transaction, batch insert, and get_by_customer.
 
 from __future__ import annotations
 
-import pytest
 from uuid import uuid4
+
+import pytest
 
 from app.core.entities.customer import Customer
 from app.core.entities.order import Order, OrderItem

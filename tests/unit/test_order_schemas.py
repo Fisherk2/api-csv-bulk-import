@@ -27,8 +27,9 @@ class TestOrderItemCreateSchema:
 
     def test_orderitem_create_quantity_zero(self) -> None:
         """Quantity <= 0 must fail validation."""
-        from pydantic import ValidationError
         from uuid import uuid4
+
+        from pydantic import ValidationError
 
         from app.schemas.order import OrderItemCreateSchema
 
@@ -43,8 +44,9 @@ class TestOrderItemCreateSchema:
 
     def test_orderitem_create_price_zero(self) -> None:
         """Price <= 0 must fail validation."""
-        from pydantic import ValidationError
         from uuid import uuid4
+
+        from pydantic import ValidationError
 
         from app.schemas.order import OrderItemCreateSchema
 
@@ -81,8 +83,9 @@ class TestOrderCreateSchema:
 
     def test_order_create_empty_items(self) -> None:
         """Empty items list must fail validation."""
-        from pydantic import ValidationError
         from uuid import uuid4
+
+        from pydantic import ValidationError
 
         from app.schemas.order import OrderCreateSchema
 

@@ -11,8 +11,6 @@ from uuid import uuid4
 
 import pytest
 
-from app.schemas.order import OrderCreateSchema
-
 
 class TestOrderService:
     """OrderService must orchestrate upload with mocked repositories."""
