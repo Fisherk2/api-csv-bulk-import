@@ -2,7 +2,7 @@
 
 **Project:** Bulk Import/Export API with Strict Validation
 **Version:** 2.3.0 | **Date:** 2026-05-27 | **Author:** Fisherk2
-**Status:** Under Implementation (P7 ready for implementation) | **Methodology:** Spec-Driven Development (SDD) — Vertical Slices
+**Status:** P7 completed, P8 ready for specs | **Methodology:** Spec-Driven Development (SDD) — Vertical Slices
 **Repository:** https://github.com/Fisherk2/api-csv-bulk-import/
 
 ---
@@ -39,8 +39,8 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P4: Upload Slice** | 3 days | 2026-05-28 | 2026-05-26 | ✅ Completed | Customer → Order → Validation → `/upload` | ✅ Upload works |
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ✅ Completed | `/export` with JSON/CSV | ✅ Full flow works |
 | **P6: Testing** | 2 days | 2026-06-03 | 2026-05-27 | ✅ Completed | Formal review + E2E + coverage gap closure | ✅ 261 tests, 96.98% coverage |
-| **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | 🔵 Ready for Implementation | Docker prod + CI/CD + Rate Limiting | — |
-| **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ❌ | Docs, user guide, retrospective | — |
+| **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ✅ Completed | Docker prod + CI/CD + Rate Limiting | ✅ 267 tests, 96.73% coverage |
+| **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | 🔵 Ready for Specs | Docs, user guide, retrospective | — |
 
 ---
 
@@ -299,7 +299,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 ### Phase P7: Deployment
 
 > **Objective:** Containerized, production-ready deployment with multi-stage Dockerfile, Nginx reverse proxy, rate limiting, and automated CI/CD quality gates.
-> **Status:** 🔵 Ready for Implementation
+> **Status:** ✅ Completed — 267 tests pass, 96.73% coverage, ruff clean, mypy clean
 > **Detailed spec:** [specs/P7-DEPLOYMENT-SLICE.md](specs/P7-DEPLOYMENT-SLICE.md) | **Detailed plan:** [tasks/plan.md — Tasks 24-25](tasks/plan.md)
 
 **P7 Architectural Decisions:**
@@ -319,38 +319,48 @@ For project context, technical stack, architecture and conventions, refer to [AG
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T24 | Spec-F1-004 | Docker Dev Setup | Multi-stage `Dockerfile`, `.dockerignore`, `docker-compose.yml` with `api` + `db` services, entrypoint script | Medium | New: 4 | T03, T17 | 0/6 | ❌ |
-| T25 | *New* (AD-P4-08) | Rate Limiting Integration | `slowapi` middleware in `main.py`, global + `/token` rate limits, RFC 7807 429, rate limit headers, tests | Medium | Modify: 3 | T07, T17 | 0/5 | ❌ |
-| T26 | Spec-F5-001 + Spec-F5-002 | Docker Prod + CI/CD | `docker-compose.prod.yml` (Nginx + resource limits), `.github/workflows/ci.yml` (lint + type-check + test with PostgreSQL) | Medium | New: 3 | T24, T25, T23 | 0/8 | ❌ |
+| T24 | Spec-F1-004 | Docker Dev Setup | Multi-stage `Dockerfile`, `.dockerignore`, `docker-compose.yml` with `api` + `db` services, entrypoint script | Medium | New: 4 | T03, T17 | 6/6 | ✅ |
+| T25 | *New* (AD-P4-08) | Rate Limiting Integration | `slowapi` middleware in `main.py`, global + `/token` rate limits, RFC 7807 429, rate limit headers, tests | Medium | Modify: 3 | T07, T17 | 5/5 | ✅ |
+| T26 | Spec-F5-001 + Spec-F5-002 | Docker Prod + CI/CD | `docker-compose.prod.yml` (Nginx + resource limits), `.github/workflows/ci.yml` (lint + type-check + test with PostgreSQL) | Medium | New: 3 | T24, T25, T23 | 8/8 | ✅ |
 
 ### ✅ Checkpoint P7: Deployment Complete
 
-- [ ] `docker-compose up` — both `api` and `db` services healthy
-- [ ] `curl http://localhost:8000/` returns 200
-- [ ] `docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d` — all 3 services (api, db, nginx) healthy
-- [ ] `curl http://localhost:80/` returns 200 via Nginx with security headers
-- [ ] Rate limiting active: 429 returned on exceeded limits with RFC 7807 format
-- [ ] Multi-stage Dockerfile produces image < 300 MB, runs as non-root user
-- [ ] `.dockerignore` present and effective
-- [ ] CI pipeline passes on push: lint ✅, type-check ✅, test ✅
-- [ ] CI fails when coverage < 80%
-- [ ] `ruff check .` and `mypy .` pass with zero errors
-- [ ] All existing 261 tests pass with PostgreSQL (no regressions)
-- [ ] Domain layer (`app/core/`) has zero external dependencies
-- [ ] **Human review completed** — 5 axes: Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅)
+- [x] `docker-compose up` — both `api` and `db` services healthy
+- [x] `curl http://localhost:8000/` returns 200
+- [x] `docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d` — all 3 services (api, db, nginx) healthy
+- [x] `curl http://localhost:80/` returns 200 via Nginx with security headers
+- [x] Rate limiting active: 429 returned on exceeded limits with RFC 7807 format
+- [x] Multi-stage Dockerfile produces image < 300 MB, runs as non-root user
+- [x] `.dockerignore` present and effective
+- [x] CI pipeline passes on push: lint ✅, type-check ✅, test ✅
+- [x] CI fails when coverage < 80%
+- [x] `ruff check .` and `mypy .` pass with zero errors
+- [x] All existing 261 tests pass with PostgreSQL (no regressions)
+- [x] Domain layer (`app/core/`) has zero external dependencies
+- [x] **Human review completed** — 5 axes: Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅)
+
+**P7 Closing Notes:**
+- 267 tests passing (+6 from 261), coverage 96.73% (maintains ≥ 96%), ruff zero issues, mypy zero issues.
+- New files: `Dockerfile`, `.dockerignore`, `docker-compose.prod.yml`, `nginx/nginx.conf`, `.github/workflows/ci.yml`, `scripts/entrypoint.sh`, `app/infrastructure/rate_limiter.py`, `tests/unit/test_rate_limit.py` (6 tests).
+- 5 commits on `feature/api-import-export`: 3 implementation, 1 review fix, 1 simplification.
+- P7 completed on 2026-05-27. P8 (Closure) ready to define specs.
+- **Technical decisions:** Multi-stage Docker build with `python:3.12-slim`, non-root `appuser`, health checks on all services; slowapi for rate limiting with module-level singleton pattern; Nginx reverse proxy with security headers and `client_max_body_size 10m`; CI with PostgreSQL 16 service container, parallel lint+type-check+test, coverage gate at 80%.
+- **Code review (5 axes):** Correctness ✅, Readability ✅, Architecture ✅, Security ✅, Performance ✅.
+- **Post-review fixes:** nginx `/health` now proxies to API (was returning 200 unconditionally), DB password parameterized via `${DB_PASSWORD}` env var in docker-compose, 429 responses changed to RFC 7807 Problem Details format.
 
 ---
 
 ### Phase P8: Closure
 
 > **Objective:** Final documentation, user guide, retrospective.
+> **Status:** 🔵 Ready for Specs
 > **Detailed plan:** [tasks/plan.md — Tasks 27-29](tasks/plan.md)
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T27 | Spec-F6-001 | Final technical documentation | Update `README.md`, `AGENTS.md`, `WORKFLOW.md` | High | Modified: 3 | T23 | 0/3 | ❌ |
-| T28 | Spec-F6-002 | User guide | `USER_GUIDE.md` with `curl` examples for all endpoints | Medium | New: 1 | T27 | 0/3 | ❌ |
-| T29 | Spec-F6-003 | Retrospective | Lessons learned, `CONTRIBUTING.md`, resolve open questions | Low | New: 1-2 | T28 | 0/3 | ❌ |
+| T27 | Spec-F6-001 | Final technical documentation | Update `README.md`, `AGENTS.md`, `WORKFLOW.md` | High | Modified: 3 | T23 | 0/3 | 🔵 |
+| T28 | Spec-F6-002 | User guide | `USER_GUIDE.md` with `curl` examples for all endpoints | Medium | New: 1 | T27 | 0/3 | 🔵 |
+| T29 | Spec-F6-003 | Retrospective | Lessons learned, `CONTRIBUTING.md`, resolve open questions | Low | New: 1-2 | T28 | 0/3 | 🔵 |
 
 ---
 
@@ -392,10 +402,10 @@ graph TD
     T17 --> T23
     T18 --> T23
 
-    T03 --> T24[T24\nDocker Dev Setup\n❌]
-    T07 --> T25[T25\nRate Limiting\n❌]
+    T03 --> T24[T24\nDocker Dev Setup\n✅]
+    T07 --> T25[T25\nRate Limiting\n✅]
     T17 --> T25
-    T24 --> T26[T26\nDocker Prod + CI/CD\n❌]
+    T24 --> T26[T26\nDocker Prod + CI/CD\n✅]
     T25 --> T26
     T23 --> T26
 
