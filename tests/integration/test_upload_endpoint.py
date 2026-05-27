@@ -6,10 +6,66 @@ including authentication validation and partial processing behavior.
 
 from __future__ import annotations
 
-import io
 from uuid import uuid4
 
 import pytest
+
+# ── Shared test helpers ──────────────────────────────────────────
+
+
+async def _create_test_data(test_db_session) -> tuple:
+    """Create customer and product for upload tests."""
+    from app.core.entities.customer import Customer
+    from app.core.entities.product import Product
+    from app.infrastructure.repositories.customer_repository import (
+        CustomerRepository,
+    )
+    from app.infrastructure.repositories.product_repository import (
+        ProductRepository,
+    )
+
+    cust_repo = CustomerRepository(session=test_db_session)
+    prod_repo = ProductRepository(session=test_db_session)
+
+    customer = await cust_repo.create(
+        Customer(name="Test Customer", email="test@example.com")
+    )
+    product = await prod_repo.create(
+        Product(name="Test Widget", price=10.0, stock=100)
+    )
+    return customer, product
+
+
+async def _create_auth_client(test_db_session, test_user):
+    """Create authenticated httpx client with test DB override."""
+    from httpx import ASGITransport, AsyncClient
+
+    from app.infrastructure.database.session import get_db
+    from app.main import create_app
+
+    app = create_app()
+
+    async def override_get_db():
+        yield test_db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    client = AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    )
+
+    login_response = await client.post(
+        "/token",
+        data={
+            "username": test_user["username"],
+            "password": test_user["password"],
+        },
+    )
+    token = login_response.json()["access_token"]
+    return client, token, app
+
+
+# ── Test classes ──────────────────────────────────────────────────
 
 
 @pytest.mark.asyncio
@@ -18,57 +74,13 @@ class TestUploadEndpointJSON:
 
     @pytest.fixture(autouse=True)
     async def _setup(self, test_db_session, test_user):
-        """Create test data needed for upload tests."""
-        from app.core.entities.customer import Customer
-        from app.core.entities.product import Product
-        from app.infrastructure.repositories.customer_repository import (
-            CustomerRepository,
+        self.customer, self.product = await _create_test_data(test_db_session)
+        self.auth_client, self.token, self._app = await _create_auth_client(
+            test_db_session, test_user
         )
-        from app.infrastructure.repositories.product_repository import (
-            ProductRepository,
-        )
-
-        cust_repo = CustomerRepository(session=test_db_session)
-        prod_repo = ProductRepository(session=test_db_session)
-
-        self.customer = await cust_repo.create(
-            Customer(name="Test Customer", email="test@example.com")
-        )
-        self.product = await prod_repo.create(
-            Product(name="Test Widget", price=10.0, stock=100)
-        )
-
-        # Get auth token
-        from httpx import ASGITransport, AsyncClient
-
-        from app.infrastructure.database.session import get_db
-        from app.main import create_app
-
-        app = create_app()
-
-        async def override_get_db():
-            yield test_db_session
-
-        app.dependency_overrides[get_db] = override_get_db
-
-        self.auth_client = AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        )
-
-        # Login to get token
-        login_response = await self.auth_client.post(
-            "/token",
-            data={
-                "username": test_user["username"],
-                "password": test_user["password"],
-            },
-        )
-        self.token = login_response.json()["access_token"]
-
         yield
-
         await self.auth_client.aclose()
-        app.dependency_overrides.clear()
+        self._app.dependency_overrides.clear()
 
     async def test_upload_valid_orders_200(self) -> None:
         """Valid orders must return 200 with all successful."""
@@ -164,7 +176,7 @@ class TestUploadEndpointJSON:
         )
         assert response.status_code == 401
 
-    async def test_upload_invalid_json_422(self) -> None:
+    async def test_upload_invalid_json_400(self) -> None:
         """Malformed request body must return 400."""
         response = await self.auth_client.post(
             "/upload",
@@ -180,60 +192,31 @@ class TestUploadEndpointCSV:
 
     @pytest.fixture(autouse=True)
     async def _setup(self, test_db_session, test_user):
-        """Create test data and auth client."""
+        self.customer, self.product = await _create_test_data(test_db_session)
+        # Ensure unique customer email for CSV
         from app.core.entities.customer import Customer
-        from app.core.entities.product import Product
         from app.infrastructure.repositories.customer_repository import (
             CustomerRepository,
         )
-        from app.infrastructure.repositories.product_repository import (
-            ProductRepository,
-        )
 
         cust_repo = CustomerRepository(session=test_db_session)
-        prod_repo = ProductRepository(session=test_db_session)
-
-        self.customer = await cust_repo.create(
+        self.csv_customer = await cust_repo.create(
             Customer(name="CSV Customer", email="csv@example.com")
         )
-        self.product = await prod_repo.create(
-            Product(name="CSV Widget", price=10.0, stock=100)
+
+        self.auth_client, self.token, self._app = await _create_auth_client(
+            test_db_session, test_user
         )
-
-        from httpx import ASGITransport, AsyncClient
-
-        from app.infrastructure.database.session import get_db
-        from app.main import create_app
-
-        app = create_app()
-
-        async def override_get_db():
-            yield test_db_session
-
-        app.dependency_overrides[get_db] = override_get_db
-
-        self.auth_client = AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        )
-
-        login_response = await self.auth_client.post(
-            "/token",
-            data={
-                "username": test_user["username"],
-                "password": test_user["password"],
-            },
-        )
-        self.token = login_response.json()["access_token"]
-
         yield
-
         await self.auth_client.aclose()
-        app.dependency_overrides.clear()
+        self._app.dependency_overrides.clear()
 
     async def test_upload_csv_valid_200(self) -> None:
         """Valid CSV must return 200."""
+        import io
+
         pid = str(self.product.id)
-        cid = str(self.customer.id)
+        cid = str(self.csv_customer.id)
         csv_content = (
             "customer_id,customer_name,customer_email,product_id,quantity,price\n"
             f"{cid},CSV Customer,csv@example.com,{pid},2,10.0\n"
@@ -241,7 +224,13 @@ class TestUploadEndpointCSV:
 
         response = await self.auth_client.post(
             "/upload",
-            files={"file": ("orders.csv", io.BytesIO(csv_content.encode()), "text/csv")},
+            files={
+                "file": (
+                    "orders.csv",
+                    io.BytesIO(csv_content.encode()),
+                    "text/csv",
+                )
+            },
             headers={"Authorization": f"Bearer {self.token}"},
         )
         assert response.status_code == 200
@@ -250,6 +239,8 @@ class TestUploadEndpointCSV:
 
     async def test_upload_csv_no_auth_401(self) -> None:
         """CSV upload without auth must return 401."""
+        import io
+
         pid = str(self.product.id)
         csv_content = (
             "customer_id,customer_name,customer_email,product_id,quantity,price\n"
@@ -258,7 +249,13 @@ class TestUploadEndpointCSV:
 
         response = await self.auth_client.post(
             "/upload",
-            files={"file": ("orders.csv", io.BytesIO(csv_content.encode()), "text/csv")},
+            files={
+                "file": (
+                    "orders.csv",
+                    io.BytesIO(csv_content.encode()),
+                    "text/csv",
+                )
+            },
         )
         assert response.status_code == 401
 
@@ -269,46 +266,13 @@ class TestUploadEndpointEdgeCases:
 
     @pytest.fixture(autouse=True)
     async def _setup(self, test_db_session, test_user):
-        """Create test data."""
-        from app.core.entities.product import Product
-        from app.infrastructure.repositories.product_repository import (
-            ProductRepository,
+        _, self.product = await _create_test_data(test_db_session)
+        self.auth_client, self.token, self._app = await _create_auth_client(
+            test_db_session, test_user
         )
-
-        prod_repo = ProductRepository(session=test_db_session)
-        self.product = await prod_repo.create(
-            Product(name="Edge Widget", price=10.0, stock=100)
-        )
-
-        from httpx import ASGITransport, AsyncClient
-
-        from app.infrastructure.database.session import get_db
-        from app.main import create_app
-
-        app = create_app()
-
-        async def override_get_db():
-            yield test_db_session
-
-        app.dependency_overrides[get_db] = override_get_db
-
-        self.auth_client = AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        )
-
-        login_response = await self.auth_client.post(
-            "/token",
-            data={
-                "username": test_user["username"],
-                "password": test_user["password"],
-            },
-        )
-        self.token = login_response.json()["access_token"]
-
         yield
-
         await self.auth_client.aclose()
-        app.dependency_overrides.clear()
+        self._app.dependency_overrides.clear()
 
     async def test_upload_empty_orders_list_422(self) -> None:
         """Empty orders list must return 422."""
@@ -329,11 +293,15 @@ class TestUploadEndpointEdgeCases:
                 "orders": [
                     {
                         "customer_id": str(cid),
-                        "items": [{"product_id": pid, "quantity": 1, "price": 10.0}],
+                        "items": [
+                            {"product_id": pid, "quantity": 1, "price": 10.0}
+                        ],
                     },
                     {
                         "customer_id": str(cid),
-                        "items": [{"product_id": pid, "quantity": 2, "price": 20.0}],
+                        "items": [
+                            {"product_id": pid, "quantity": 2, "price": 20.0}
+                        ],
                     },
                 ]
             },

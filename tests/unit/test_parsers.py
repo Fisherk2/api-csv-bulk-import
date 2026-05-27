@@ -39,6 +39,25 @@ class TestCSVParser:
         except ValueError:
             pass
 
+    def test_parse_csv_to_orders_groups_by_email(self) -> None:
+        """parse_csv_to_orders must group rows by customer_email."""
+        from app.utils.csv_parser import parse_csv_to_orders
+
+        content = (
+            "customer_name,customer_email,customer_id,product_id,quantity,price\n"
+            "Alice,alice@example.com,cid-1,pid-1,2,19.99\n"
+            "Alice,alice@example.com,cid-1,pid-2,1,9.99\n"
+            "Bob,bob@example.com,cid-2,pid-1,5,19.99\n"
+        )
+        orders = parse_csv_to_orders(content)
+        assert len(orders) == 2
+        # First order: Alice with 2 items
+        alice_order = [o for o in orders if o["customer_id"] == "cid-1"][0]
+        assert len(alice_order["items"]) == 2
+        # Second order: Bob with 1 item
+        bob_order = [o for o in orders if o["customer_id"] == "cid-2"][0]
+        assert len(bob_order["items"]) == 1
+
 
 class TestJSONParser:
     """JSON parser must handle valid and invalid JSON content."""

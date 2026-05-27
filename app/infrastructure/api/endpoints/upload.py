@@ -98,56 +98,36 @@ async def upload(
     service = await _get_order_service(db)
 
     if file is not None:
-        # CSV upload via UploadFile parameter (FastAPI handles multipart)
         content_bytes = await file.read()
         content = content_bytes.decode("utf-8")
 
-        from app.utils.csv_parser import parse_csv
+        from app.utils.csv_parser import parse_csv_to_orders
 
         try:
-            rows = parse_csv(content)
+            orders_data = parse_csv_to_orders(content)
         except ValueError as exc:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=str(exc),
             )
-
-        # Transform flat CSV rows into OrderCreateSchema-compatible dicts
-        # Group rows by customer_email into orders with multiple items
-        orders_by_customer: dict[str, dict[str, Any]] = {}
-        for row in rows:
-            email = row.get("customer_email", "")
-            if email not in orders_by_customer:
-                orders_by_customer[email] = {
-                    "customer_id": row.get("customer_id", ""),
-                    "items": [],
-                }
-            orders_by_customer[email]["items"].append(
-                {
-                    "product_id": row.get("product_id", ""),
-                    "quantity": int(row.get("quantity", 1)),
-                    "price": float(row.get("price", 0)),
-                }
-            )
-
-        orders_data = list(orders_by_customer.values())
     else:
-        # JSON body path
         orders_data = await _parse_json_upload(request)
 
     user_id = UUID(user.id) if isinstance(user.id, str) else user.id
     result = await service.upload_orders(orders_data, user_id=user_id)
 
-    # Determine status code
-    if result.failed == 0:
-        http_status = status.HTTP_200_OK
-    elif result.successful > 0:
-        http_status = 207  # Multi-Status
-    else:
-        http_status = status.HTTP_422_UNPROCESSABLE_ENTITY
-
+    http_status = _status_for_result(result)
     return Response(
         content=result.model_dump_json(),
         media_type="application/json",
         status_code=http_status,
     )
+
+
+def _status_for_result(result: Any) -> int:
+    """Determine HTTP status code for batch upload result."""
+    if result.failed == 0:
+        return status.HTTP_200_OK
+    if result.successful > 0:
+        return 207  # Multi-Status
+    return status.HTTP_422_UNPROCESSABLE_ENTITY
