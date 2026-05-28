@@ -16,6 +16,8 @@ services:
     ports:
       - "${PORT:-8000}:8000"
     environment:
+      # Python path — ensures `import app` works from /app/ working directory
+      - PYTHONPATH=/app
       # Database — uses Docker Compose internal network (hostname: db)
       - DATABASE_URL=postgresql+asyncpg://postgres:${DB_PASSWORD:-change-me}@db:5432/api_csv_import
       - SYNC_DATABASE_URL=postgresql://postgres:${DB_PASSWORD:-change-me}@db:5432/api_csv_import
@@ -54,7 +56,7 @@ services:
     container_name: api-csv-import-db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-pimpumpapas}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
       POSTGRES_DB: api_csv_import
     ports:
       - "5432:5432"

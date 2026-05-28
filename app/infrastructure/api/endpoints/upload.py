@@ -66,13 +66,13 @@ async def _parse_json_upload(request: Request) -> list[dict[str, Any]]:
 
     if len(orders_raw) == 0:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="At least one order is required",
         )
 
     if len(orders_raw) > settings.MAX_BATCH_SIZE:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f"Batch size exceeds maximum of {settings.MAX_BATCH_SIZE} orders",
         )
 
@@ -111,7 +111,7 @@ async def upload(
             max_mb=settings.MAX_FILE_SIZE_MB,
         ):
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"File exceeds maximum size of {settings.MAX_FILE_SIZE_MB} MB",
             )
 
@@ -128,7 +128,7 @@ async def upload(
         # Enforce batch size limit for CSV uploads (same as JSON path)
         if len(orders_data) > settings.MAX_BATCH_SIZE:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"Batch size exceeds maximum of {settings.MAX_BATCH_SIZE} orders",
             )
     else:
@@ -151,4 +151,4 @@ def _status_for_result(result: Any) -> int:
         return status.HTTP_200_OK
     if result.successful > 0:
         return 207  # Multi-Status
-    return status.HTTP_422_UNPROCESSABLE_ENTITY
+    return status.HTTP_422_UNPROCESSABLE_CONTENT
