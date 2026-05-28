@@ -25,23 +25,48 @@ source .venv/bin/activate  # Linux/macOS
 # .venv\Scripts\activate   # Windows
 
 # Install dependencies
-pip install -r requirements.txt
+make install
 
 # Set up environment
 cp .env.example .env
 # Edit .env with your database credentials
 
-# Start PostgreSQL (via Docker)
-docker-compose up -d db
+# Start PostgreSQL + API (via Docker)
+make docker-up
 
-# Apply migrations
-alembic upgrade head
+# Apply migrations (auto-run on container start)
+# or manually: make migrate message="your description"
 
-# Run the API
-uvicorn app.main:app --reload
+# Run tests with coverage
+make test-cov
+```
 
-# Run tests
-pytest --cov=app
+---
+
+## Makefile Workflow
+
+This project includes a [Makefile](Makefile) with targets for the most common development tasks. Use `make` instead of typing raw commands:
+
+```bash
+make help           # List all available targets
+make install        # Install dependencies
+make lint           # Lint with ruff
+make format         # Auto-format with ruff
+make type-check     # Type check with mypy (source code only)
+make test           # Run tests (quick)
+make test-cov       # Run tests with coverage report
+make dev            # Start dev server with auto-reload (HOST=0.0.0.0 PORT=8000)
+make run            # Start production server (no reload)
+make docker-up      # Start Docker stack (api + db)
+make docker-down    # Stop Docker stack
+make docker-logs    # Follow Docker logs
+make clean          # Remove cache files and artifacts
+```
+
+**Customize:** Override defaults with variables:
+```bash
+make dev HOST=127.0.0.1 PORT=9000
+make migrate message="add orders table"
 ```
 
 ---
@@ -76,10 +101,16 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture guide
 Every commit must pass:
 
 ```bash
-ruff check .          # Linting
-ruff format .         # Formatting
-mypy .                # Type checking
-pytest                # Tests
+make lint             # Linting (ruff check .)
+make format           # Formatting (ruff format .)
+make type-check       # Type checking (mypy app/)
+make test             # Tests (pytest)
+```
+
+Alternatively, use the raw commands:
+
+```bash
+ruff check . && ruff format . && mypy app/ && pytest
 ```
 
 All four must pass before committing. No exceptions.
@@ -135,7 +166,13 @@ git checkout -b docs/T28-description    # Documentation
 ### 3. Verify
 
 ```bash
-ruff check . && ruff format . && mypy . && pytest
+make lint && make format && make type-check && make test
+```
+
+Or the equivalent raw commands:
+
+```bash
+ruff check . && ruff format . && mypy app/ && pytest
 ```
 
 All must pass.

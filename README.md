@@ -61,6 +61,26 @@ uvicorn app.main:app --reload
 
 ---
 
+## Makefile Workflow
+
+All common tasks are available via the [Makefile](Makefile). Use `make` for a faster workflow:
+
+```bash
+make help           # List all targets
+make lint           # Lint with ruff
+make format         # Auto-format with ruff
+make type-check     # Type check with mypy
+make test           # Run tests
+make test-cov       # Tests with coverage report
+make docker-up      # Start Docker stack (api + db)
+make docker-down    # Stop Docker stack
+make clean          # Remove cache files
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full Makefile reference.
+
+---
+
 ## API Endpoints
 
 | Method | Endpoint | Description | Auth |

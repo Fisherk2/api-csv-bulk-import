@@ -29,8 +29,8 @@ lint: ## Run ruff linter
 format: ## Auto-format code with ruff
 	ruff format .
 
-type-check: ## Run mypy type checker
-	mypy .
+type-check: ## Run mypy type checker (source code only; CI runs full check)
+	mypy app/
 
 test: ## Run test suite
 	pytest

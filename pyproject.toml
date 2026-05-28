@@ -51,7 +51,16 @@ dev = [
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-exclude = ["migrations/versions/", ".venv/", "__pycache__/"]
+exclude = [
+    "migrations/versions/",
+    ".venv/",
+    "__pycache__/",
+    "agents/",
+    ".opencode/",
+    "skills/",
+    "commands/",
+    ".git/",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
@@ -66,7 +75,14 @@ python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_ignores = true
-exclude = ["migrations/versions/", ".venv/"]
+exclude = [
+    "migrations/versions/",
+    ".venv/",
+    "agents/",
+    ".opencode/",
+    "skills/",
+    "commands/",
+]
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
