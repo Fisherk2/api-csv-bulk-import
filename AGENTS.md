@@ -1,6 +1,6 @@
 # Bulk Import/Export API with Strict Validation
 
-**Version:** 1.0.0 | **Status:** P8 Ready for Specs | **Methodology:** Spec-Driven Development (SDD)
+**Version:** 1.0.0 | **Status:** v1.0.0 Released | **Methodology:** Spec-Driven Development (SDD)
 **Repository:** https://github.com/Fisherk2/api-csv-bulk-import/
 
 ## Quick Reference
@@ -18,6 +18,7 @@
 - [Code Style & Conventions](docs/CODE-STYLE.md) — Naming, SOLID, file rules, pre-commit checks, prohibited practices
 - [Testing Strategy](docs/TESTING.md) — Three-phase strategy, frameworks, fixtures, examples, metrics, mocking
 - [Security & Error Handling](docs/SECURITY.md) — Input validation, HTTP responses, rate limiting, secrets, logging
+- [API Reference](docs/API_REFERENCE.md) — Curl examples, endpoint documentation, common workflows
 
 ## Implementation Tracking
 

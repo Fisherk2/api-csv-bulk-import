@@ -139,22 +139,34 @@
 
 ---
 
-## Phase 7: Deployment 🔵 Ready for Implementation
+## Phase 7: Deployment ✅ Completed (2026-05-27)
 
 > **Spec:** [specs/P7-DEPLOYMENT-SLICE.md](../specs/P7-DEPLOYMENT-SLICE.md)
 > **Goal:** Production Docker images, rate limiting, and CI/CD pipeline.
 
-- [ ] **T24** — Docker Dev Setup — Multi-stage `Dockerfile`, `.dockerignore`, `docker-compose.yml` (api + db + hot-reload), `scripts/entrypoint.sh`, Makefile Docker targets
-- [ ] **T25** — Rate Limiting Integration — `slowapi` middleware with custom IP key function, global 100 req/min, `/token` 20 req/min, RFC 7807 429, tests
-- [ ] **T26** — Docker Prod + CI/CD — `docker-compose.prod.yml` with Nginx + resource limits + security headers, `.github/workflows/ci.yml` with parallel lint/type-check + PostgreSQL test
+- [x] **T24** — Docker Dev Setup — Multi-stage `Dockerfile`, `.dockerignore`, `docker-compose.yml` (api + db + hot-reload), `scripts/entrypoint.sh`, Makefile Docker targets
+- [x] **T25** — Rate Limiting Integration — `slowapi` middleware with custom IP key function, global 100 req/min, `/token` 20 req/min, RFC 7807 429, tests
+- [x] **T26** — Docker Prod + CI/CD — `docker-compose.prod.yml` with Nginx + resource limits + security headers, `.github/workflows/ci.yml` with parallel lint/type-check + PostgreSQL test
+
+### ✅ Checkpoint: Deployment Complete
+- [x] `docker-compose up` — both `api` and `db` services healthy
+- [x] `curl http://localhost:8000/` returns 200
+- [x] `docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d` — all 3 services (api, db, nginx) healthy
+- [x] Rate limiting active: 429 returned on exceeded limits with RFC 7807 format
+- [x] Multi-stage Dockerfile produces image < 300 MB, runs as non-root user
+- [x] CI pipeline passes on push: lint ✅, type-check ✅, test ✅
+- [x] `ruff check .` and `mypy .` pass with zero errors
+- [x] Code review passed — 5 axes: Correctness, Readability, Architecture, Security, Performance
+
+**Summary:** 267 tests passing (+6 from P6), 96.73% coverage, ruff clean, mypy clean. New files: `Dockerfile`, `.dockerignore`, `docker-compose.prod.yml`, `nginx/nginx.conf`, `.github/workflows/ci.yml`, `scripts/entrypoint.sh`, `app/infrastructure/rate_limiter.py`. 5 commits on `feature/api-import-export`. P8 (Closure) ready for specs.
 
 ---
 
-## Phase 8: Closure
+## Phase 8: Closure 🔵 In Plan
 
-- [ ] **T27** — Final Documentation — Update `README.md`, `AGENTS.md`, `WORKFLOW.md` with completed state
-- [ ] **T28** — User Guide — `USER_GUIDE.md` with `curl` examples for all endpoints
-- [ ] **T29** — Retrospective — Lessons learned, `CONTRIBUTING.md`, resolve SPEC.md open questions
+- [ ] **T27** — Final Documentation — Update `README.md`, `AGENTS.md`, `WORKFLOW.md`, clean up `docs/SETUP.md`
+- [ ] **T28** — API Reference Guide — `docs/API_REFERENCE.md` with `curl` examples for all endpoints
+- [ ] **T29** — Retrospective — Lessons learned (`docs/RETROSPECTIVE.md`), `CONTRIBUTING.md`, resolve SPEC.md open questions
 
 ---
 
@@ -168,6 +180,6 @@
 | 4. Upload Slice | 8 | 8 | ✅ Completed |
 | 5. Export Slice | 1 | 1 | ✅ Completed |
 | 6. Testing | 5 | 5 | ✅ Completed |
-| 7. Deployment | 2 | 0 | 🟡 Spec Defined |
-| 8. Closure | 3 | 0 | ❌ Not started |
-| **Total** | **28** | **23** | ✅ P6 Complete — P7 Next |
+| 7. Deployment | 3 | 3 | ✅ Completed |
+| 8. Closure | 3 | 0 | 🔵 In Plan |
+| **Total** | **29** | **26** | ✅ P7 Complete — P8 In Plan |

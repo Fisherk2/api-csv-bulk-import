@@ -72,7 +72,7 @@ graph TD
     T23 --> T26
 
     T23 --> T27[T27: Final Documentation]
-    T27 --> T28[T28: User Guide]
+    T27 --> T28[T28: API Reference]
     T28 --> T29[T29: Retrospective]
 ```
 
@@ -1057,23 +1057,23 @@ Before proceeding to P7 (Deployment), verify:
 
 ---
 
-#### Task 28: User Guide
+#### Task 28: API Reference Guide
 
-**Description:** Create `USER_GUIDE.md` (or update existing) with practical usage examples: `curl` commands for all endpoints, Postman collection reference, and common workflows.
+**Description:** Create `docs/API_REFERENCE.md` (overwrite existing placeholder) with practical usage examples: `curl` commands for all endpoints, Postman/Swagger reference, and common workflows. The `USER_GUIDE.md` in the project root is preserved — it belongs to the OpenCode/SDD workspace ecosystem, not this API project.
 
 **Acceptance criteria:**
-- [ ] User guide includes: authentication flow, upload examples (JSON + CSV), export examples (JSON + CSV), error handling examples
+- [ ] API reference includes: authentication flow, upload examples (JSON + CSV), export examples (JSON + CSV), error handling examples
 - [ ] All `curl` commands are tested and work against a running instance
-- [ ] Includes example requests and responses for each status code (200, 207, 400, 401, 413, 422)
+- [ ] Includes example requests and responses for each status code (200, 207, 400, 401, 413, 422, 429)
 
 **Verification:**
 - [ ] All `curl` commands in the guide return expected status codes
-- [ ] Guide covers all 3 endpoints (`/token`, `/upload`, `/export`)
+- [ ] Guide covers all 4 endpoints (`/`, `/token`, `/upload`, `/export`)
 
-**Dependencies:** Task 26 (final documentation)
+**Dependencies:** Task 27 (final documentation)
 
 **Files likely touched:**
-- `USER_GUIDE.md` (update or create)
+- `docs/API_REFERENCE.md` (overwrite)
 
 **Estimated scope:** Medium (1 file)
 
@@ -1092,11 +1092,11 @@ Before proceeding to P7 (Deployment), verify:
 - [ ] `CONTRIBUTING.md` is no longer empty
 - [ ] All open questions from SPEC.md have answers or are marked as "future work"
 
-**Dependencies:** Task 27 (user guide)
+**Dependencies:** Task 28 (API reference guide)
 
 **Files likely touched:**
 - `CONTRIBUTING.md` (update)
-- `docs/RETROSPECTIVE.md` (new, or section in WORKFLOW.md)
+- `docs/RETROSPECTIVE.md` (new)
 
 **Estimated scope:** Small (1-2 files)
 
@@ -1159,5 +1159,5 @@ This plan reorganizes the original horizontal phases into vertical slices. Here'
 | Task 25 | *New* (AD-P4-08) — Rate Limiting |
 | Task 26 | Spec-F5-001 (Docker Prod) + Spec-F5-002 (CI/CD) |
 | Task 27 | Spec-F6-001 (Final Documentation) |
-| Task 28 | Spec-F6-002 (User Guide) |
+| Task 28 | Spec-F6-002 (API Reference Guide) |
 | Task 29 | Spec-F6-003 (Retrospective) |

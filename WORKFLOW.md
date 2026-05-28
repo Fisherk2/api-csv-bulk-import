@@ -2,7 +2,7 @@
 
 **Project:** Bulk Import/Export API with Strict Validation
 **Version:** 2.3.0 | **Date:** 2026-05-27 | **Author:** Fisherk2
-**Status:** P7 completed, P8 ready for specs | **Methodology:** Spec-Driven Development (SDD) — Vertical Slices
+**Status:** All phases completed (P1–P8) | **Methodology:** Spec-Driven Development (SDD) — Vertical Slices
 **Repository:** https://github.com/Fisherk2/api-csv-bulk-import/
 
 ---
@@ -40,7 +40,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ✅ Completed | `/export` with JSON/CSV | ✅ Full flow works |
 | **P6: Testing** | 2 days | 2026-06-03 | 2026-05-27 | ✅ Completed | Formal review + E2E + coverage gap closure | ✅ 261 tests, 96.98% coverage |
 | **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ✅ Completed | Docker prod + CI/CD + Rate Limiting | ✅ 267 tests, 96.73% coverage |
-| **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | 🔵 Ready for Specs | Docs, user guide, retrospective | — |
+| **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ✅ Completed | Docs, API reference, retrospective | ✅ All docs done |
 
 ---
 
@@ -352,15 +352,32 @@ For project context, technical stack, architecture and conventions, refer to [AG
 
 ### Phase P8: Closure
 
-> **Objective:** Final documentation, user guide, retrospective.
-> **Status:** 🔵 Ready for Specs
+> **Objective:** Final documentation, API reference guide, retrospective.
+> **Status:** ✅ Completed
 > **Detailed plan:** [tasks/plan.md — Tasks 27-29](tasks/plan.md)
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|
-| T27 | Spec-F6-001 | Final technical documentation | Update `README.md`, `AGENTS.md`, `WORKFLOW.md` | High | Modified: 3 | T23 | 0/3 | 🔵 |
-| T28 | Spec-F6-002 | User guide | `USER_GUIDE.md` with `curl` examples for all endpoints | Medium | New: 1 | T27 | 0/3 | 🔵 |
-| T29 | Spec-F6-003 | Retrospective | Lessons learned, `CONTRIBUTING.md`, resolve open questions | Low | New: 1-2 | T28 | 0/3 | 🔵 |
+| T27 | Spec-F6-001 | Final technical documentation | Update `README.md`, `AGENTS.md`, `WORKFLOW.md`, `docs/SETUP.md` | High | Modified: 4 | T23 | 4/4 | ✅ |
+| T28 | Spec-F6-002 | API reference guide | `docs/API_REFERENCE.md` with `curl` examples for all endpoints | Medium | New: 1 | T27 | 3/3 | ✅ |
+| T29 | Spec-F6-003 | Retrospective | Lessons learned, `CONTRIBUTING.md`, resolve open questions | Low | New: 1-2 | T28 | 3/3 | ✅ |
+
+### ✅ Checkpoint P8: Closure Complete
+
+- [x] `README.md` has: project description, tech stack, quick start, API endpoints, testing commands, deployment instructions
+- [x] `AGENTS.md` reflects final project state (v1.0.0 Released)
+- [x] `WORKFLOW.md` has all specs marked as ✅ with completion dates
+- [x] `docs/API_REFERENCE.md` with curl examples for all 4 endpoints
+- [x] `CONTRIBUTING.md` has: dev setup, coding standards, PR process, commit format
+- [x] `docs/RETROSPECTIVE.md` covers: what went well, what could improve, future work
+- [x] `grep -r "TODO\|FIXME" app/` — returns nothing
+- [x] All open questions from SPEC.md resolved or documented as future work
+
+**P8 Closing Notes:**
+- 267 tests passing, coverage 96.73%, ruff zero issues, mypy zero issues.
+- New files: `README.md` (full rewrite), `CONTRIBUTING.md` (new), `docs/RETROSPECTIVE.md` (new), `docs/API_REFERENCE.md` (new).
+- Updated files: `AGENTS.md` (status + new doc links), `WORKFLOW.md` (P8 completed).
+- P8 completed on 2026-06-06. All phases (P1–P8) complete. Project is v1.0.0 Released.
 
 ---
 
@@ -409,9 +426,9 @@ graph TD
     T25 --> T26
     T23 --> T26
 
-    T23 --> T27[T27\nFinal technical docs\n❌]
-    T27 --> T28[T28\nUser guide\n❌]
-    T28 --> T29[T29\nRetrospective\n❌]
+    T23 --> T27[T27\nFinal technical docs\n✅]
+    T27 --> T28[T28\nAPI reference\n✅]
+    T28 --> T29[T29\nRetrospective\n✅]
 ```
 
 ---
@@ -449,7 +466,7 @@ The following table shows how each task in the vertical plan maps to the origina
 | T25 | *New* (AD-P4-08) | Rate Limiting Integration |
 | T26 | Spec-F5-001 + Spec-F5-002 | Docker Prod + CI/CD |
 | T27 | Spec-F6-001 | Final technical documentation |
-| T28 | Spec-F6-002 | User guide |
+| T28 | Spec-F6-002 | API reference guide |
 | T29 | Spec-F6-003 | Retrospective |
 
 ---
