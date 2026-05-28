@@ -103,3 +103,5 @@ jobs:
           # Disable global rate limiting in CI tests
           RATE_LIMIT_PER_MINUTE: "0"
           TOKEN_RATE_LIMIT: "100000"
+          UPLOAD_RATE_LIMIT: "100000"
+          EXPORT_RATE_LIMIT: "100000"

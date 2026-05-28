@@ -88,6 +88,64 @@ class TestCSVParser:
         except ValueError as exc:
             assert "missing required columns" in str(exc).lower()
 
+    def test_parse_csv_invalid_quantity(self) -> None:
+        """CSV with non-numeric quantity must raise ValueError with row context."""
+        from app.utils.csv_parser import parse_csv_to_orders
+
+        content = (
+            "customer_name,customer_email,customer_id,product_id,quantity,price\n"
+            "Alice,alice@example.com,cid-1,pid-1,abc,10.0\n"
+        )
+        try:
+            parse_csv_to_orders(content)
+            raise AssertionError("Should have raised")
+        except ValueError as exc:
+            assert "invalid quantity" in str(exc).lower()
+            assert "Row 1" in str(exc)
+
+    def test_parse_csv_invalid_price(self) -> None:
+        """CSV with non-numeric price must raise ValueError with row context."""
+        from app.utils.csv_parser import parse_csv_to_orders
+
+        content = (
+            "customer_name,customer_email,customer_id,product_id,quantity,price\n"
+            "Alice,alice@example.com,cid-1,pid-1,2,xyz\n"
+        )
+        try:
+            parse_csv_to_orders(content)
+            raise AssertionError("Should have raised")
+        except ValueError as exc:
+            assert "invalid price" in str(exc).lower()
+            assert "Row 1" in str(exc)
+
+    def test_parse_csv_quantity_too_low(self) -> None:
+        """CSV with quantity < 1 must raise ValueError."""
+        from app.utils.csv_parser import parse_csv_to_orders
+
+        content = (
+            "customer_name,customer_email,customer_id,product_id,quantity,price\n"
+            "Alice,alice@example.com,cid-1,pid-1,0,10.0\n"
+        )
+        try:
+            parse_csv_to_orders(content)
+            raise AssertionError("Should have raised")
+        except ValueError as exc:
+            assert "quantity must be at least 1" in str(exc)
+
+    def test_parse_csv_negative_price(self) -> None:
+        """CSV with negative price must raise ValueError."""
+        from app.utils.csv_parser import parse_csv_to_orders
+
+        content = (
+            "customer_name,customer_email,customer_id,product_id,quantity,price\n"
+            "Alice,alice@example.com,cid-1,pid-1,2,-5.0\n"
+        )
+        try:
+            parse_csv_to_orders(content)
+            raise AssertionError("Should have raised")
+        except ValueError as exc:
+            assert "price must be non-negative" in str(exc)
+
 
 class TestJSONParser:
     """JSON parser must handle valid and invalid JSON content."""

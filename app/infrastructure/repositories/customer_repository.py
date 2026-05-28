@@ -110,6 +110,7 @@ class CustomerRepository(ICustomerRepository):
                 len(customers),
             )
             await self._session.rollback()
+            raise
         return [self._to_domain(m) for m in models]
 
     async def get_by_ids(

@@ -348,6 +348,28 @@ class TestUploadEndpointCSVEdgeCases:
         )
         assert response.status_code == 400
 
+    async def test_csv_upload_wrong_content_type_400(self) -> None:
+        """CSV upload with wrong MIME type must return 400."""
+        import io
+
+        pid = str(self.product.id)
+        csv_content = (
+            "customer_id,customer_name,customer_email,product_id,quantity,price\n"
+            f"some-id,Test,test@example.com,{pid},1,10.0\n"
+        )
+        response = await self.auth_client.post(
+            "/upload",
+            files={
+                "file": (
+                    "orders.pdf",
+                    io.BytesIO(csv_content.encode()),
+                    "application/pdf",
+                )
+            },
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        assert response.status_code == 400
+
     async def test_csv_upload_batch_too_large_413(self) -> None:
         """CSV upload with >MAX_BATCH_SIZE rows must return 413."""
         import io

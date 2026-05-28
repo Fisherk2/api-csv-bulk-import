@@ -126,7 +126,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 - **AD-P3-01:** Product as simplest domain validates full DDD pipeline before Customer/Order
 - **AD-P3-02:** Repository interface uses `abc.ABC` with `@abstractmethod` (not `Protocol`)
 - **AD-P3-03:** Batch insert uses `INSERT ... ON CONFLICT (id) DO NOTHING` for true partial processing, with dialect-aware fallback between PostgreSQL and SQLite
-- **AD-P3-04:** Logging with `logging.getLogger(__name__)` before rollback in `create_batch` — errors are logged but never propagated to the caller
+- **AD-P3-04 (updated 2026-05-27):** Logging with `logging.getLogger(__name__)` before rollback in `create_batch` — errors are logged, the DB session is rolled back, and the exception is **re-raised** to prevent silent data loss. Callers must handle `create_batch` exceptions (the FastAPI exception handler returns HTTP 500).
 
 | Task | Original Spec | Name | Description | Priority | Files | Dependencies | Checklist | Status |
 |------|--------------|------|-------------|----------|-------|-------------|-----------|--------|

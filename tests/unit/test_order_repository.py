@@ -235,7 +235,7 @@ class TestOrderRepositoryCRUD:
     async def test_create_batch_exception_handling(
         self, test_db_session, mocker
     ) -> None:
-        """DB error during create_batch must be caught without propagation."""
+        """DB error during create_batch must rollback and propagate."""
         from app.infrastructure.repositories.order_repository import (
             OrderRepository,
         )
@@ -249,8 +249,8 @@ class TestOrderRepositoryCRUD:
             customer_id=uuid4(),
             items=[OrderItem(product_id=uuid4(), quantity=1, price=10.0)],
         )
-        result = await repo.create_batch([order])
-        assert len(result) == 1
+        with pytest.raises(Exception, match="Simulated DB failure"):
+            await repo.create_batch([order])
 
 
 class TestOrderRepositoryInterface:

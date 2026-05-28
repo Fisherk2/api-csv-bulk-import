@@ -157,7 +157,7 @@ class TestProductRepositoryCRUD:
     async def test_create_batch_exception_handling(
         self, test_db_session, mocker
     ) -> None:
-        """DB error during create_batch must be caught without propagation."""
+        """DB error during create_batch must rollback and propagate."""
         from app.infrastructure.repositories.product_repository import (
             ProductRepository,
         )
@@ -168,8 +168,8 @@ class TestProductRepositoryCRUD:
             side_effect=Exception("Simulated DB failure"),
         )
         product = Product(name="Error Test", price=10.0, stock=5)
-        result = await repo.create_batch([product])
-        assert len(result) == 1
+        with pytest.raises(Exception, match="Simulated DB failure"):
+            await repo.create_batch([product])
 
 
 class TestProductRepositoryInterface:

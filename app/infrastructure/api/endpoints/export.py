@@ -8,13 +8,15 @@ from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.services.export_service import ExportService
 from app.infrastructure.auth.dependencies import get_current_user
 from app.infrastructure.database.session import get_db
+from app.infrastructure.rate_limiter import limiter as _limiter
 from app.infrastructure.repositories.order_repository import OrderRepository
 from app.schemas.user import UserResponseSchema
 
@@ -30,7 +32,9 @@ def _get_export_service(db: AsyncSession) -> ExportService:
 
 
 @router.get("/export")
+@_limiter.limit(lambda: f"{settings.EXPORT_RATE_LIMIT}/minute")
 async def export_orders(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     user: UserResponseSchema = Depends(get_current_user),
     fmt: str = Query("json", alias="format"),

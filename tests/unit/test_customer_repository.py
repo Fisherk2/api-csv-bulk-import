@@ -187,7 +187,7 @@ class TestCustomerRepositoryCRUD:
     async def test_create_batch_exception_handling(
         self, test_db_session, mocker
     ) -> None:
-        """DB error during create_batch must be caught without propagation."""
+        """DB error during create_batch must rollback and propagate."""
         from app.core.entities.customer import Customer
         from app.infrastructure.repositories.customer_repository import (
             CustomerRepository,
@@ -199,9 +199,8 @@ class TestCustomerRepositoryCRUD:
             side_effect=Exception("Simulated DB failure"),
         )
         customer = Customer(name="Error Test", email="error@example.com")
-        result = await repo.create_batch([customer])
-        # Method must return gracefully even after DB error
-        assert len(result) == 1
+        with pytest.raises(Exception, match="Simulated DB failure"):
+            await repo.create_batch([customer])
 
 
 class TestCustomerRepositoryInterface:

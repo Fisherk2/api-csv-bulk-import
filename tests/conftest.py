@@ -15,6 +15,7 @@ os.environ["RATE_LIMIT_PER_MINUTE"] = "0"
 # with each other (the shared limiter state persists across test files).
 os.environ["TOKEN_RATE_LIMIT"] = "100000"
 os.environ["UPLOAD_RATE_LIMIT"] = "100000"
+os.environ["EXPORT_RATE_LIMIT"] = "100000"
 
 import pytest
 from httpx import ASGITransport, AsyncClient

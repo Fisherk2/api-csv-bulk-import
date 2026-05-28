@@ -20,6 +20,27 @@ class TestJWTService:
         assert isinstance(token, str)
         assert len(token) > 0
 
+    def test_create_token_contains_claims(self) -> None:
+        """create_token must include aud, iss, and jti claims."""
+        from jose import jwt
+
+        from app.config import settings
+        from app.infrastructure.auth.jwt_service import JWTService
+
+        token = JWTService.create_token(username="testuser")
+        # Decode with the known key to inspect claims
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            audience="api-csv-bulk-import",
+        )
+        assert payload["aud"] == "api-csv-bulk-import"
+        assert payload["iss"] == "api-csv-bulk-import"
+        assert "jti" in payload
+        assert isinstance(payload["jti"], str)
+        assert len(payload["jti"]) > 0
+
     def test_verify_token_returns_token_data(self) -> None:
         """verify_token must decode a valid token returning TokenDataSchema."""
         from app.infrastructure.auth.jwt_service import JWTService
@@ -45,6 +66,30 @@ class TestJWTService:
             expires_delta=timedelta(hours=-1),
         )
         result = JWTService.verify_token(token)
+        assert result is None
+
+    def test_verify_token_wrong_audience_returns_none(self) -> None:
+        """verify_token must return None for a token with wrong audience."""
+        from jose import jwt
+
+        from app.config import settings
+        from app.infrastructure.auth.jwt_service import JWTService
+
+        token = JWTService.create_token(username="testuser")
+        # Decode with known key and correct audience, modify audience, re-encode
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            audience="api-csv-bulk-import",
+        )
+        payload["aud"] = "some-other-api"
+        wrong_token = jwt.encode(
+            payload,
+            settings.SECRET_KEY,
+            algorithm=settings.ALGORITHM,
+        )
+        result = JWTService.verify_token(wrong_token)
         assert result is None
 
 

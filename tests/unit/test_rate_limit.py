@@ -96,6 +96,63 @@ class TestRateLimitDoesNotInterfere:
         assert resp.status_code == 200
         assert resp.json()["status"] == "ok"
 
+    async def _trigger_upload_rate_limit(
+        self, client, test_user, monkeypatch, low_limit: int = 5
+    ):
+        """Lower the upload rate limit and make requests until a 429 is returned.
+
+        Returns the first 429 response. Fails the test if the rate limit
+        is not triggered after ``low_limit + 1`` requests.
+        """
+        import uuid
+
+        import app.config as cfg
+
+        monkeypatch.setattr(cfg.settings, "UPLOAD_RATE_LIMIT", low_limit)
+
+        login_resp = await client.post(
+            "/token",
+            data={
+                "username": test_user["username"],
+                "password": test_user["password"],
+            },
+        )
+        token = login_resp.json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        for _ in range(low_limit + 1):
+            resp = await client.post(
+                "/upload",
+                json={
+                    "orders": [
+                        {
+                            "customer_id": str(uuid.uuid4()),
+                            "items": [
+                                {
+                                    "product_id": str(uuid.uuid4()),
+                                    "quantity": 1,
+                                    "price": 10.0,
+                                }
+                            ],
+                        }
+                    ]
+                },
+                headers=headers,
+            )
+            if resp.status_code == 429:
+                return resp
+        pytest.fail("Upload rate limit was not triggered after %d requests", low_limit + 1)
+
+    async def test_upload_rate_limit_exceeded_returns_429(
+        self, client, test_user, monkeypatch
+    ) -> None:
+        """Rapid authenticated requests to /upload must eventually return 429."""
+        resp = await self._trigger_upload_rate_limit(client, test_user, monkeypatch)
+        assert resp.status_code == 429
+        data = resp.json()
+        assert data["title"] == "Rate Limit Exceeded"
+        assert data["status"] == 429
+
     async def test_upload_still_works_with_auth(self, client, test_user) -> None:
         """Authenticated upload should work normally."""
         # Login

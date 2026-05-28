@@ -164,6 +164,7 @@ class OrderRepository(IOrderRepository):
                 len(orders),
             )
             await self._session.rollback()
+            raise
         return [self._to_domain(m) for m in models]
 
     @staticmethod
