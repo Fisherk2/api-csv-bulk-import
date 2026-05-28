@@ -11,7 +11,7 @@
 | **IDs** | Positive integer (`gt=0`) | None (PostgreSQL handles types) |
 | **Names** | `str`, `min_length=1`, `max_length=100`, regex to prevent SQL injection | `strip()` to remove whitespace |
 | **Emails** | `EmailStr` (Pydantic) | None (Pydantic validates format) |
-| **Passwords** | `min_length=8`, `max_length=50`, at least 1 uppercase, 1 number, 1 symbol | Hashing with `bcrypt` |
+| **Passwords** | `min_length=8`, `max_length=50`, at least 1 uppercase, 1 lowercase, 1 digit | Hashing with `bcrypt` |
 | **Prices** | `float`, `gt=0`, `le=1000000` | Round to 2 decimals |
 | **Quantity** | `int`, `gt=0`, `le=1000` | None |
 | **CSV/JSON** | Validate structure (required headers in CSV, required fields in JSON) | Parse with safe libraries (`csv`, `json`) |
@@ -54,22 +54,22 @@ class ProductCreateSchema(BaseModel):
 
 | Scenario | Handling | Configuration |
 |----------|---------|--------------|
-| **DB Timeout** | Retry 1 time with `tenacity` | `retry=Retrying(stop=stop_after_attempt(2))` |
-| **Rate Limiting** | Limit to **100 requests/minute** per IP | `slowapi` (FastAPI middleware) |
-| **Batch Size** | Maximum **1000 rows** per request | Validate in `UploadUseCase` |
-| **File Size** | Maximum **10 MB** per request | `max_file_size=10_000_000` in FastAPI |
+| **DB Timeout** | Log error, rollback, re-raise | Exception propagates to FastAPI error handler |
+| **Global Rate Limiting** | Limit per IP | `slowapi` middleware, configurable via `RATE_LIMIT_PER_MINUTE` |
+| **Per-endpoint Rate Limiting** | `/token`: 20/min, `/upload`: 30/min, `/export`: 100/min | Configurable via `TOKEN_RATE_LIMIT`, `UPLOAD_RATE_LIMIT`, `EXPORT_RATE_LIMIT` |
+| **Batch Size** | Maximum **1000 rows** per request | `MAX_BATCH_SIZE` setting |
+| **File Size** | Maximum **10 MB** per request | `MAX_FILE_SIZE_MB` setting |
 | **Concurrency** | Use `async`/`await` for I/O-bound endpoints | `async def upload_endpoint(...)` |
 
-### Rate Limiting Example
+### Rate Limiting Configuration
+
+Rate limits are applied via `slowapi` decorators on each endpoint. The global rate limit is set via `RATE_LIMIT_PER_MINUTE` (0 = disabled). Per-endpoint limits override the global limit.
 
 ```python
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.infrastructure.rate_limiter import limiter
 
-limiter = Limiter(key_func=get_remote_address)
-
-@app.post("/upload")
-@limiter.limit("100/minute")
+@router.post("/upload")
+@limiter.limit(lambda: f"{settings.UPLOAD_RATE_LIMIT}/minute")
 async def upload(request: Request, ...):
     ...
 ```
@@ -85,25 +85,22 @@ async def upload(request: Request, ...):
 
 ```python
 # app/config.py
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    secret_key: str
-    database_url: str
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
+    SECRET_KEY: str = "change-me-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    RATE_LIMIT_PER_MINUTE: int = 100
+    TOKEN_RATE_LIMIT: int = 20
+    UPLOAD_RATE_LIMIT: int = 30
+    EXPORT_RATE_LIMIT: int = 100
+    MAX_BATCH_SIZE: int = 1000
+    MAX_FILE_SIZE_MB: int = 10
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()
-```
-
-### `.env.example` (for repository sharing)
-
-```
-SECRET_KEY=your_secret_key_here
-DATABASE_URL=postgresql://user:password@localhost:5432/db_name
 ```
 
 ---
@@ -111,27 +108,12 @@ DATABASE_URL=postgresql://user:password@localhost:5432/db_name
 ## Structured Logging
 
 ```python
-# app/config.py
+# app/infrastructure/repositories/order_repository.py
 import logging
-from pythonjsonlogger import jsonlogger
 
-def setup_logging():
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-
-    formatter = jsonlogger.JsonFormatter(
-        "%(asctime)s %(levelname)s %(name)s %(message)s %(lineno)d %(pathname)s"
-    )
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
-    return logger
-
-logger = setup_logging()
+logger = logging.getLogger(__name__)
 
 # Usage:
-logger.info("Processing batch", extra={"batch_size": 100, "user_id": 1})
-logger.error("Validation failed", extra={"errors": ["row 3: invalid price"]})
+logger.info("Upload batch of %d orders by user %s", len(orders), user_id)
+logger.exception("create_batch failed for %d orders, rolling back", len(orders))
 ```

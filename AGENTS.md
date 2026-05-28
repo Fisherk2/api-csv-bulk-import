@@ -22,7 +22,7 @@
 
 ## Implementation Tracking
 
-- [WORKFLOW.md](WORKFLOW.md) — Spec tracking, dependency diagram, phase progress (F0–F6)
+- [WORKFLOW.md](WORKFLOW.md) — Spec tracking, dependency diagram, phase progress (P1–P8)
 
 ## Boundaries
 

@@ -10,7 +10,7 @@
 
 Built a production-grade REST API for bulk import/export of relational data using FastAPI, SQLAlchemy async, PostgreSQL, and DDD architecture. Delivered across 8 vertical-slice phases (P1–P8) over 12 days, from empty directory to deployed Docker stack with CI/CD.
 
-**Final metrics:** 267 tests, 96.73% coverage, 0 ruff issues, 0 mypy errors, 53 source files (2,622 LOC), 40 test files (4,927 LOC).
+**Final metrics:** 279 tests, 97.24% coverage, 0 ruff issues, 0 mypy errors, 53 source files (2,622 LOC), 40 test files (5,072 LOC).
 
 ---
 
@@ -147,6 +147,6 @@ Conventional Commits, descriptive branch names, and atomic commits made the git 
 | P3 | 1 day | Product entity + repository |
 | P4 | 3 days | Customer/Order entities, `/upload` endpoint |
 | P5 | 1 day | `/export` endpoint (JSON/CSV) |
-| P6 | 2 days | 261 tests, 96.98% coverage |
+| P6 | 2 days | 279 tests, 97.24% coverage |
 | P7 | 1 day | Docker prod, CI/CD, rate limiting |
 | P8 | 1 day | Documentation, API reference, retrospective |

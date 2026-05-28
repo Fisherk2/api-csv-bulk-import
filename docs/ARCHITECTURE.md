@@ -8,7 +8,7 @@
 
 | Pattern | Application | Benefit |
 |---------|-------------|---------|
-| **Domain-Driven Design** | Organization by domains (`orders/`, `products/`, `customers/`) | Clear separation of concerns, high cohesion |
+| **Domain-Driven Design** | Organization by domains (`entities/`, `repositories/`, `services/`) | Clear separation of concerns, high cohesion |
 | **Contract-First** | Pydantic schemas defined **before** endpoints | Consistent validation, automatic OpenAPI documentation |
 | **Fail-Fast** | Data validation **before** batch processing | Prevents inconsistent DB states |
 | **Repository Pattern** | Abstraction layer for data access (e.g., `OrderRepository`) | Decouples business logic from persistence |
@@ -65,11 +65,11 @@ graph TD
 
 1. **Authentication:** Client sends JWT token in `Authorization: Bearer <token>` header.
 2. **Parsing:** FastAPI detects format (CSV/JSON) and converts to Python object.
-3. **Validation:** `ValidationService` validates each row/object against Pydantic schemas.
+3. **Validation:** `OrderService` validates each row/object against Pydantic schemas and checks product FK references.
 4. **Processing:**
-   - If errors exist, generate RFC 7807 error reports.
-   - If no errors, `OrderService` prepares batch for persistence.
-5. **Persistence:** `OrderRepository` inserts valid data into PostgreSQL with `INSERT ... ON CONFLICT DO NOTHING`.
+   - Valid rows are converted to domain entities.
+   - Invalid rows generate RFC 7807 error reports with row numbers.
+5. **Persistence:** `OrderRepository` inserts valid data into PostgreSQL with `INSERT ... ON CONFLICT DO NOTHING`. Exceptions are re-raised after rollback.
 6. **Response:**
    - **200 OK** — entire batch valid.
    - **207 Multi-Status** — partial errors with RFC 7807 report.
@@ -99,7 +99,6 @@ api-import-export/
 │   │   │   ├── product_repository.py
 │   │   │   └── customer_repository.py
 │   │   └── services/            # Domain services (business logic)
-│   │       ├── validation_service.py
 │   │       └── order_service.py
 │   │
 │   ├── infrastructure/          # Implementation details
@@ -166,7 +165,7 @@ api-import-export/
 | Pattern | Application | Benefit |
 |---------|-------------|---------|
 | **Repository** | `OrderRepository`, `ProductRepository` (data access abstraction) | Decouples business logic from persistence |
-| **Service Layer** | `OrderService`, `ValidationService` (business logic) | Centralizes business logic, promotes reuse |
+| **Service Layer** | `OrderService`, `ExportService` (business logic) | Centralizes business logic, promotes reuse |
 | **Dependency Injection** | Injection of repositories and services into use cases | Facilitates testing (mocking) and flexibility |
 | **Unit of Work** | Batch transaction handling in `OrderService` | Guarantees consistency in complex operations |
 | **Factory** | `PydanticSchemaFactory` (dynamic schema creation if MVP extends) | Flexibility in object creation |

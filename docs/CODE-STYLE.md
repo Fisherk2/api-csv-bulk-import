@@ -9,10 +9,10 @@
 | Principle | Application | Example |
 |-----------|-------------|---------|
 | **Single Responsibility** | Each class/module has one responsibility | `OrderRepository` only handles DB operations for `Order` |
-| **Open/Closed** | Entities and services open for extension, closed for modification | `ValidationService` can be extended with new rules without modifying existing code |
+| **Open/Closed** | Entities and services open for extension, closed for modification | `OrderService` can be extended with new validation rules without modifying existing code |
 | **Liskov Substitution** | Repository implementations can substitute their interfaces | `OrderRepository` (SQLAlchemy) implements `IOrderRepository` |
 | **Interface Segregation** | Repository interfaces are specific to each entity | `IOrderRepository` only has `Order`-related methods |
-| **Dependency Inversion** | Use cases depend on abstractions (interfaces), not concrete implementations | `UploadUseCase` depends on `IOrderRepository`, not `OrderRepository` |
+| **Dependency Inversion** | Use cases depend on abstractions (interfaces), not concrete implementations | `OrderService` depends on `IOrderRepository`, not `OrderRepository` |
 
 ---
 
@@ -24,8 +24,8 @@
 | **SQLAlchemy Classes** | PascalCase, `Model` suffix | `OrderModel` |
 | **DDD Entities** | PascalCase | `Order`, `Product` |
 | **Repositories** | PascalCase, `Repository` suffix | `OrderRepository` |
-| **Services** | PascalCase, `Service` suffix | `OrderService` |
-| **Use Cases** | PascalCase, `UseCase` suffix | `UploadOrderUseCase` |
+| **Services** | PascalCase, `Service` suffix | `OrderService`, `ExportService` |
+| **Use Cases** | PascalCase, `UseCase` suffix | *(Not used in MVP)* |
 | **Endpoints** | snake_case | `upload_order`, `export_orders` |
 | **Variables** | snake_case | `order_id`, `customer_name` |
 | **Functions** | snake_case | `validate_order`, `parse_csv` |
@@ -69,7 +69,7 @@ select = ["E", "F", "I", "N", "W", "UP"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_ignores = true
@@ -90,7 +90,7 @@ addopts = "--verbose --cov=app --cov-report=term-missing"
 | Ignoring exceptions | Can leave app in inconsistent state | Handle all exceptions explicitly |
 | Long transactions | Blocks DB, reduces performance | Split into smaller transactions |
 | Raw SQL in code | SQL injection risk | Use SQLAlchemy ORM or Core |
-| Validation in endpoint | Couples business logic to API layer | Validate in `ValidationService` |
+| Validation in endpoint | Couples business logic to API layer | Validate in service layer (e.g., `OrderService`) |
 | Returning sensitive data in errors | Information exposure risk | Generic messages + internal logs |
 | Using `any` as type | Loses static typing | Use specific types or `Typing.Any` |
 | Modifying global state | Makes testing and debugging hard | Use dependency injection |

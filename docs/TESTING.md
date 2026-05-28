@@ -49,7 +49,7 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from app.main import app
+from app.main import create_app
 from app.infrastructure.database.base import Base
 from app.infrastructure.database.session import get_db
 
@@ -69,7 +69,7 @@ async def test_db_engine():
     await engine.dispose()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def test_db_session(test_db_engine):
     """Provide an async database session with rollback after each test."""
     async_session = async_sessionmaker(
@@ -80,9 +80,11 @@ async def test_db_session(test_db_engine):
         await session.rollback()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def client(test_db_session):
     """Provide an async HTTP test client with DB dependency override."""
+    app = create_app()
+
     async def override_get_db():
         yield test_db_session
 
@@ -94,21 +96,21 @@ async def client(test_db_session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def test_user(test_db_session):
     """Create a test user in the database and return credentials."""
     from app.infrastructure.auth.password_service import PasswordService
     from app.infrastructure.database.models.user import UserModel
 
-    hashed_password = PasswordService.hash_password("testpassword123")
+    hashed_password = PasswordService.hash_password("Test1234")
     user = UserModel(username="testuser", hashed_password=hashed_password)
     test_db_session.add(user)
     await test_db_session.flush()
 
     return {
         "username": "testuser",
-        "password": "testpassword123",
-        "user_id": user.id,
+        "password": "Test1234",
+        "user_id": str(user.id),
     }
 ```
 
@@ -142,7 +144,6 @@ def test_order_validation_positive_price():
 # tests/unit/test_jwt_service.py
 import pytest
 from app.infrastructure.auth.jwt_service import JWTService
-from app.schemas.user import TokenDataSchema
 
 
 def test_create_and_verify_token():
@@ -294,7 +295,7 @@ async def test_full_flow(client, test_user):
     # 3. Export
     export_response = await client.get("/export", headers=headers)
     assert export_response.status_code == 200
-    assert len(export_response.json()["orders"]) >= 1
+    assert len(export_response.json()) >= 1
 ```
 
 ---
@@ -342,7 +343,7 @@ async def test_upload_endpoint_with_mock_auth(client, mocker):
         id=UUID("12345678-1234-5678-1234-567812345678"),
         username="testuser",
         is_active=True,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
     mocker.patch(
         "app.infrastructure.auth.dependencies.get_current_user",

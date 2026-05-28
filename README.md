@@ -1,7 +1,7 @@
 # Bulk Import/Export API with Strict Validation
 
 [![CI](https://github.com/Fisherk2/api-csv-bulk-import/actions/workflows/ci.yml/badge.svg)](https://github.com/Fisherk2/api-csv-bulk-import/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-96.73%25-brightgreen)]()
+[![Coverage](https://img.shields.io/badge/coverage-97.24%25-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.12+-blue)]()
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
@@ -165,7 +165,10 @@ See [`.env.example`](.env.example) for all configurable options. Key variables:
 | `SECRET_KEY` | `change-me-...` | JWT signing key |
 | `MAX_BATCH_SIZE` | `1000` | Max rows per upload |
 | `MAX_FILE_SIZE_MB` | `10` | Max upload file size |
-| `RATE_LIMIT_PER_MINUTE` | `100` | Global rate limit |
+| `RATE_LIMIT_PER_MINUTE` | `100` | Global rate limit (0 = disabled) |
+| `TOKEN_RATE_LIMIT` | `20` | `/token` rate limit |
+| `UPLOAD_RATE_LIMIT` | `30` | `/upload` rate limit |
+| `EXPORT_RATE_LIMIT` | `100` | `/export` rate limit |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | JWT token TTL |
 
 ---
@@ -177,8 +180,16 @@ Domain-Driven Design (DDD) with vertical slices:
 ```
 app/
 ├── core/              # Domain entities, repository interfaces, services (zero external deps)
+│   ├── entities/      # Order, Product, Customer, User (pure dataclasses)
+│   ├── repositories/  # ABC interfaces (IOrderRepository, etc.)
+│   └── services/      # OrderService, ExportService (business logic)
 ├── infrastructure/    # DB models, repository implementations, auth, rate limiting
-├── interfaces/        # FastAPI routers, schemas, dependencies
+│   ├── database/      # SQLAlchemy models, Base, session factory
+│   ├── repositories/  # Concrete repos (OrderRepository, etc.)
+│   ├── auth/          # JWT, password hashing, dependencies
+│   ├── api/           # FastAPI routers and endpoints
+│   └── rate_limiter.py
+├── schemas/           # Pydantic request/response schemas
 ├── utils/             # CSV/JSON parsers, file utilities
 └── main.py            # App factory, middleware, CORS
 ```
@@ -201,7 +212,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture guide
 | Test files | 40 |
 | Source LOC | 2,622 |
 | Test LOC | 5,072 |
-| Test coverage | 96.73% |
+| Test coverage | 97.24% |
 | Lint issues (ruff) | 0 |
 | Type errors (mypy) | 0 |
 

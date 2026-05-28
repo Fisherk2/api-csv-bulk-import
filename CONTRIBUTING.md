@@ -26,7 +26,6 @@ source .venv/bin/activate  # Linux/macOS
 
 # Install dependencies
 pip install -r requirements.txt
-pip install -e ".[dev]"
 
 # Set up environment
 cp .env.example .env

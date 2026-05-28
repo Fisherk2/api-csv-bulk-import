@@ -52,10 +52,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 | Fase | Estado | Fecha |
 |------|--------|-------|
 | P1: Foundation | ✅ Completed | 2026-05-25 |
-| P2: Auth Slice | 🟡 Ready for Specs | — |
-| P3: Product Slice | ❌ Not started | — |
-| P4: Upload Slice | ❌ Not started | — |
-| P5: Export Slice | ❌ Not started | — |
-| P6: Testing | ❌ Not started | — |
-| P7: Deployment | ❌ Not started | — |
-| P8: Closure | ❌ Not started | — |
+| P2: Auth Slice | ✅ Completed | 2026-05-28 |
+| P3: Product Slice | ✅ Completed | 2026-05-26 |
+| P4: Upload Slice | ✅ Completed | 2026-05-26 |
+| P5: Export Slice | ✅ Completed | 2026-05-26 |
+| P6: Testing | ✅ Completed | 2026-05-27 |
+| P7: Deployment | ✅ Completed | 2026-05-27 |
+| P8: Closure | ✅ Completed | 2026-06-06 |

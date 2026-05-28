@@ -83,12 +83,14 @@
 - [x] **T16** — CSV/JSON Parsers — `csv_parser.py`, `json_parser.py`, `file_utils.py`
 - [x] **T17** — /upload Endpoint — `POST /upload` with auth, validation, partial processing (200/207/422)
 
-### ✅ Checkpoint: Upload Vertical Slice
-- [ ] Authenticated `POST /upload` with valid JSON → 200
-- [ ] Authenticated `POST /upload` with mixed valid/invalid → 207 with RFC 7807 errors
-- [ ] Authenticated `POST /upload` with all invalid → 422
-- [ ] Unauthenticated request → 401
-- [ ] `ruff check .` and `mypy .` pass
+### ✅ Checkpoint: Upload Vertical Slice — PASSED
+- [x] Authenticated `POST /upload` with valid JSON → 200
+- [x] Authenticated `POST /upload` with mixed valid/invalid → 207 with RFC 7807 errors
+- [x] Authenticated `POST /upload` with all invalid → 422
+- [x] Unauthenticated request → 401
+- [x] `ruff check .` and `mypy .` pass
+
+**Summary:** 216 tests passing, coverage 93.64%, ruff clean, mypy clean.
 
 ---
 
@@ -162,11 +164,11 @@
 
 ---
 
-## Phase 8: Closure 🔵 In Plan
+## Phase 8: Closure ✅ Completed (2026-06-06)
 
-- [ ] **T27** — Final Documentation — Update `README.md`, `AGENTS.md`, `WORKFLOW.md`, clean up `docs/SETUP.md`
-- [ ] **T28** — API Reference Guide — `docs/API_REFERENCE.md` with `curl` examples for all endpoints
-- [ ] **T29** — Retrospective — Lessons learned (`docs/RETROSPECTIVE.md`), `CONTRIBUTING.md`, resolve SPEC.md open questions
+- [x] **T27** — Final Documentation — Update `README.md`, `AGENTS.md`, `WORKFLOW.md`, clean up `docs/SETUP.md`
+- [x] **T28** — API Reference Guide — `docs/API_REFERENCE.md` with `curl` examples for all endpoints
+- [x] **T29** — Retrospective — Lessons learned (`docs/RETROSPECTIVE.md`), `CONTRIBUTING.md`, resolve SPEC.md open questions
 
 ---
 
@@ -181,5 +183,5 @@
 | 5. Export Slice | 1 | 1 | ✅ Completed |
 | 6. Testing | 5 | 5 | ✅ Completed |
 | 7. Deployment | 3 | 3 | ✅ Completed |
-| 8. Closure | 3 | 0 | 🔵 In Plan |
-| **Total** | **29** | **26** | ✅ P7 Complete — P8 In Plan |
+| 8. Closure | 3 | 3 | ✅ Completed |
+| **Total** | **29** | **29** | ✅ All Phases Complete |

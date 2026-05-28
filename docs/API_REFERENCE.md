@@ -92,7 +92,7 @@ curl -X POST http://localhost:8000/token \
 
 Import orders in JSON or CSV format. Requires JWT authentication.
 
-**Rate limit:** 100 requests per minute per IP.
+**Rate limit:** 30 requests per minute per IP.
 
 **Max batch size:** 1000 orders.
 **Max file size:** 10 MB.
@@ -391,7 +391,7 @@ All errors follow [RFC 7807 Problem Details](https://www.rfc-editor.org/rfc/rfc7
 | Endpoint | Limit | Window |
 |----------|-------|--------|
 | `POST /token` | 20 req | per minute per IP |
-| `POST /upload` | 100 req | per minute per IP |
+| `POST /upload` | 30 req | per minute per IP |
 | `GET /export` | 100 req | per minute per IP |
 
 When rate limited, the API returns `429 Too Many Requests` in RFC 7807 format:
@@ -414,7 +414,7 @@ When rate limited, the API returns `429 Too Many Requests` in RFC 7807 format:
 |--------|----------|------|------------|-------------|
 | `GET` | `/` | No | — | Health check |
 | `POST` | `/token` | No | 20/min | Obtain JWT token |
-| `POST` | `/upload` | Yes | 100/min | Import orders (JSON/CSV) |
+| `POST` | `/upload` | Yes | 30/min | Import orders (JSON/CSV) |
 | `GET` | `/export` | Yes | 100/min | Export orders (JSON/CSV) |
 
 ---
