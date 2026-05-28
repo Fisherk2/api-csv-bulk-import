@@ -24,6 +24,22 @@ import pytest
 # afterwards, regardless of test outcome.  Only activates for tests
 # marked with @pytest.mark.docker.
 
+_COMPOSE_TIMEOUT_UP = 300
+_COMPOSE_TIMEOUT_OTHER = 30
+
+
+def _run_compose(
+    project_dir: str, *args: str, timeout: int = _COMPOSE_TIMEOUT_OTHER
+) -> subprocess.CompletedProcess[str]:
+    """Run a docker-compose command in the project directory."""
+    return subprocess.run(
+        ["docker-compose", *args],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        cwd=project_dir,
+    )
+
 
 def _wait_for_api(base_url: str, timeout: int = 60) -> bool:
     """Poll the health endpoint until the API responds or timeout.
@@ -72,7 +88,7 @@ def docker_stack(request: pytest.FixtureRequest) -> Generator[str, None, None]:
     requests the ``docker_client`` fixture.
     """
     base_url = "http://localhost:8000"
-    project_dir = request.config.rootdir
+    project_dir = str(request.config.rootdir)
 
     # Check if Docker is available
     try:
@@ -87,52 +103,28 @@ def docker_stack(request: pytest.FixtureRequest) -> Generator[str, None, None]:
 
     # Start the stack
     print("\n[docker_stack] Building and starting containers...")
-    up_result = subprocess.run(
-        ["docker-compose", "up", "-d", "--build"],
-        capture_output=True,
-        text=True,
-        timeout=300,
-        cwd=str(project_dir),
-    )
-    if up_result.returncode != 0:
-        pytest.skip(f"docker-compose up failed:\n{up_result.stderr}")
+    up = _run_compose(project_dir, "up", "-d", "--build", timeout=_COMPOSE_TIMEOUT_UP)
+    if up.returncode != 0:
+        pytest.skip(f"docker-compose up failed:\n{up.stderr}")
 
     # Wait for API to be ready
     print("[docker_stack] Waiting for API to be ready...")
-    if not _wait_for_api(base_url, timeout=60):
-        # Dump logs for debugging
-        logs = subprocess.run(
-            ["docker-compose", "logs", "api"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            cwd=str(project_dir),
-        )
-        # Tear down before skipping
-        subprocess.run(
-            ["docker-compose", "down"],
-            capture_output=True,
-            timeout=30,
-            cwd=str(project_dir),
-        )
+    if _wait_for_api(base_url, timeout=60):
+        print("[docker_stack] API is ready!")
+        yield base_url
+    else:
+        # Dump logs + tear down before skipping
+        logs = _run_compose(project_dir, "logs", "api")
+        _run_compose(project_dir, "down")
         pytest.skip(
             f"API did not become ready within 60s.\n"
             f"API logs:\n{logs.stdout[-500:]}"
         )
-
-    print("[docker_stack] API is ready!")
-
-    # Yield — tests run here
-    yield base_url
+        yield  # unreachable, but satisfies Generator type
 
     # Teardown: always stop containers
     print("\n[docker_stack] Stopping containers...")
-    subprocess.run(
-        ["docker-compose", "down"],
-        capture_output=True,
-        timeout=30,
-        cwd=str(project_dir),
-    )
+    _run_compose(project_dir, "down")
     print("[docker_stack] Containers stopped.")
 
 
@@ -165,6 +157,12 @@ async def smoke_token(docker_client: httpx.AsyncClient) -> str:
         pytest.skip("Cannot authenticate — no test user in DB")
 
     return login_resp.json()["access_token"]
+
+
+@pytest.fixture
+async def smoke_headers(smoke_token: str) -> dict[str, str]:
+    """Provide Authorization headers for authenticated smoke tests."""
+    return {"Authorization": f"Bearer {smoke_token}"}
 
 
 # ── ASGI fixtures (for non-Docker e2e tests) ────────────────────

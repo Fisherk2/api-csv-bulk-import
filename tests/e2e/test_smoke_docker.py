@@ -5,8 +5,8 @@ The docker_stack fixture (from conftest.py) automatically:
   2. Waits for the API to be healthy
   3. Tears down containers after all tests finish
 
-The smoke_token fixture authenticates against the live stack and
-returns a JWT token for tests that need it.
+The smoke_headers fixture provides Authorization headers for
+authenticated requests against the live stack.
 
 Usage:
     pytest tests/e2e/test_smoke_docker.py -v -m docker
@@ -53,10 +53,8 @@ async def test_smoke_docker_export_requires_auth(docker_client):
     assert resp.status_code == 401
 
 
-async def test_smoke_docker_upload_validates_batch(docker_client, smoke_token):
+async def test_smoke_docker_upload_validates_batch(docker_client, smoke_headers):
     """Upload with valid structure but non-existent IDs returns 422 (not 500)."""
-    headers = {"Authorization": f"Bearer {smoke_token}"}
-
     upload_payload = {
         "orders": [
             {
@@ -66,7 +64,7 @@ async def test_smoke_docker_upload_validates_batch(docker_client, smoke_token):
         ]
     }
     upload_resp = await docker_client.post(
-        "/upload", json=upload_payload, headers=headers
+        "/upload", json=upload_payload, headers=smoke_headers
     )
     # Should return 422 (validation error), not 500 (server error)
     assert upload_resp.status_code == 422, (
@@ -78,11 +76,9 @@ async def test_smoke_docker_upload_validates_batch(docker_client, smoke_token):
     assert upload_data["failed"] >= 1
 
 
-async def test_smoke_docker_export_returns_json(docker_client, smoke_token):
+async def test_smoke_docker_export_returns_json(docker_client, smoke_headers):
     """Export returns valid JSON array (even if empty)."""
-    headers = {"Authorization": f"Bearer {smoke_token}"}
-
-    export_resp = await docker_client.get("/export?format=json", headers=headers)
+    export_resp = await docker_client.get("/export?format=json", headers=smoke_headers)
     assert export_resp.status_code == 200
     export_data = export_resp.json()
     assert isinstance(export_data, list)
