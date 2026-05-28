@@ -128,15 +128,11 @@ class TestCustomerRepositoryCRUD:
         repo = CustomerRepository(session=test_db_session)
 
         # Create an original customer
-        original = Customer(
-            name="Original Name", email="dup@example.com"
-        )
+        original = Customer(name="Original Name", email="dup@example.com")
         await repo.create(original)
 
         # Batch insert: one duplicate email, one unique customer
-        duplicate = Customer(
-            name="Duplicate Name", email="dup@example.com"
-        )
+        duplicate = Customer(name="Duplicate Name", email="dup@example.com")
         unique = Customer(name="Unique", email="unique@example.com")
 
         result = await repo.create_batch([duplicate, unique])
@@ -160,12 +156,8 @@ class TestCustomerRepositoryCRUD:
         )
 
         repo = CustomerRepository(session=test_db_session)
-        c1 = await repo.create(
-            Customer(name="X", email="x@example.com")
-        )
-        c2 = await repo.create(
-            Customer(name="Y", email="y@example.com")
-        )
+        c1 = await repo.create(Customer(name="X", email="x@example.com"))
+        c2 = await repo.create(Customer(name="Y", email="y@example.com"))
 
         found = await repo.get_by_ids([c1.id, c2.id])
         assert len(found) == 2
@@ -195,7 +187,8 @@ class TestCustomerRepositoryCRUD:
 
         repo = CustomerRepository(session=test_db_session)
         mocker.patch.object(
-            test_db_session, "execute",
+            test_db_session,
+            "execute",
             side_effect=Exception("Simulated DB failure"),
         )
         customer = Customer(name="Error Test", email="error@example.com")

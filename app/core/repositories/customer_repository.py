@@ -26,9 +26,7 @@ class ICustomerRepository(ABC):
         ...
 
     @abstractmethod
-    async def get_all(
-        self, skip: int = 0, limit: int = 100
-    ) -> list[Customer]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[Customer]:
         """Retrieve all customers with pagination."""
         ...
 
@@ -38,9 +36,7 @@ class ICustomerRepository(ABC):
         ...
 
     @abstractmethod
-    async def create_batch(
-        self, customers: list[Customer]
-    ) -> list[Customer]:
+    async def create_batch(self, customers: list[Customer]) -> list[Customer]:
         """Insert multiple customers, skipping duplicates by email.
 
         Uses INSERT ... ON CONFLICT (email) DO NOTHING.
@@ -48,8 +44,6 @@ class ICustomerRepository(ABC):
         ...
 
     @abstractmethod
-    async def get_by_ids(
-        self, customer_ids: list[UUID]
-    ) -> list[Customer]:
+    async def get_by_ids(self, customer_ids: list[UUID]) -> list[Customer]:
         """Retrieve multiple customers by UUIDs."""
         ...

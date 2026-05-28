@@ -164,7 +164,8 @@ class TestProductRepositoryCRUD:
 
         repo = ProductRepository(session=test_db_session)
         mocker.patch.object(
-            test_db_session, "execute",
+            test_db_session,
+            "execute",
             side_effect=Exception("Simulated DB failure"),
         )
         product = Product(name="Error Test", price=10.0, stock=5)

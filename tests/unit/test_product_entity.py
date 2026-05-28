@@ -51,7 +51,10 @@ class TestProductEntity:
 
         entity_path = (
             Path(__file__).resolve().parents[2]
-            / "app" / "core" / "entities" / "product.py"
+            / "app"
+            / "core"
+            / "entities"
+            / "product.py"
         )
         source = entity_path.read_text(encoding="utf-8")
         tree = ast.parse(source)

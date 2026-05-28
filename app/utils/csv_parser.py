@@ -12,14 +12,16 @@ import csv
 import io
 from typing import Any
 
-_REQUIRED_COLUMNS = frozenset({
-    "customer_id",
-    "customer_name",
-    "customer_email",
-    "product_id",
-    "quantity",
-    "price",
-})
+_REQUIRED_COLUMNS = frozenset(
+    {
+        "customer_id",
+        "customer_name",
+        "customer_email",
+        "product_id",
+        "quantity",
+        "price",
+    }
+)
 
 
 def parse_csv(content: str) -> list[dict[str, Any]]:
@@ -42,9 +44,7 @@ def parse_csv(content: str) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for row_number, row in enumerate(reader, start=1):
         if not any(value.strip() for value in row.values()):
-            raise ValueError(
-                f"Row {row_number} is empty or contains only whitespace"
-            )
+            raise ValueError(f"Row {row_number} is empty or contains only whitespace")
         rows.append(dict(row))
 
     if not rows:
@@ -104,9 +104,7 @@ def parse_csv_to_orders(content: str) -> list[dict[str, Any]]:
         try:
             price = float(raw_price)
         except (ValueError, TypeError) as exc:
-            raise ValueError(
-                f"Row {row_number}: invalid price '{raw_price}'"
-            ) from exc
+            raise ValueError(f"Row {row_number}: invalid price '{raw_price}'") from exc
 
         if quantity < 1:
             raise ValueError(

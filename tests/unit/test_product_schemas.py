@@ -120,9 +120,7 @@ class TestProductCreateSchema:
         from app.schemas.product import ProductCreateSchema
 
         try:
-            ProductCreateSchema(
-                name="A" * 101, price=1.0, stock=1
-            )
+            ProductCreateSchema(name="A" * 101, price=1.0, stock=1)
         except ValidationError as e:
             assert any("name" in str(err["loc"]) for err in e.errors())
         else:
@@ -139,9 +137,7 @@ class TestProductResponseSchema:
         from app.schemas.product import ProductResponseSchema
 
         uid = uuid4()
-        schema = ProductResponseSchema(
-            id=uid, name="Widget", price=19.99, stock=100
-        )
+        schema = ProductResponseSchema(id=uid, name="Widget", price=19.99, stock=100)
         assert schema.id == uid
         assert schema.name == "Widget"
         assert schema.price == 19.99
@@ -151,6 +147,4 @@ class TestProductResponseSchema:
         """ProductResponseSchema must have from_attributes=True config."""
         from app.schemas.product import ProductResponseSchema
 
-        assert (
-            ProductResponseSchema.model_config.get("from_attributes") is True
-        )
+        assert ProductResponseSchema.model_config.get("from_attributes") is True

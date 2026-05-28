@@ -35,9 +35,7 @@ class TestCustomerModelStructure:
 
         columns = {c.name for c in CustomerModel.__table__.columns}
         required = {"id", "name", "email", "created_at", "updated_at"}
-        assert required.issubset(columns), (
-            f"Missing columns: {required - columns}"
-        )
+        assert required.issubset(columns), f"Missing columns: {required - columns}"
 
     def test_customer_model_email_unique(self) -> None:
         """CustomerModel.email must have a unique constraint."""

@@ -27,7 +27,9 @@ class TestExportService:
             id=order_id,
             customer_id=uuid4(),
             status="pending",
-            items=[OrderItem(id=uuid4(), product_id=product_id, quantity=2, price=19.99)],
+            items=[
+                OrderItem(id=uuid4(), product_id=product_id, quantity=2, price=19.99)
+            ],
         )
 
         mock_repo = AsyncMock()
@@ -54,8 +56,7 @@ class TestExportService:
 
         mock_repo = AsyncMock()
         mock_repo.get_all.return_value = [
-            Order(id=uuid4(), customer_id=uuid4(), items=[])
-            for _ in range(50)
+            Order(id=uuid4(), customer_id=uuid4(), items=[]) for _ in range(50)
         ]
 
         service = ExportService(order_repo=mock_repo)

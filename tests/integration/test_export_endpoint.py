@@ -178,9 +178,7 @@ class TestExportEndpoint:
 
         app.dependency_overrides[get_db] = override_get_db
 
-        client = AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        )
+        client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
         login_response = await client.post(
             "/token",

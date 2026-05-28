@@ -42,9 +42,7 @@ class ExportService:
             for o in orders
         ]
 
-    async def export_orders_raw(
-        self, skip: int = 0, limit: int = 100
-    ) -> list[Order]:
+    async def export_orders_raw(self, skip: int = 0, limit: int = 100) -> list[Order]:
         """Export orders as domain entities (for CSV path).
 
         Args:

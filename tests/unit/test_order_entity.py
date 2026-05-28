@@ -59,7 +59,10 @@ class TestOrderEntity:
 
         entity_path = (
             Path(__file__).resolve().parents[2]
-            / "app" / "core" / "entities" / "order.py"
+            / "app"
+            / "core"
+            / "entities"
+            / "order.py"
         )
         source = entity_path.read_text(encoding="utf-8")
         tree = ast.parse(source)

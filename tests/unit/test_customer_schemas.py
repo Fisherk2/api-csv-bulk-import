@@ -14,9 +14,7 @@ class TestCustomerCreateSchema:
         """Valid name and email must pass validation."""
         from app.schemas.customer import CustomerCreateSchema
 
-        schema = CustomerCreateSchema(
-            name="John Doe", email="john@example.com"
-        )
+        schema = CustomerCreateSchema(name="John Doe", email="john@example.com")
         assert schema.name == "John Doe"
         assert schema.email == "john@example.com"
 
@@ -24,9 +22,7 @@ class TestCustomerCreateSchema:
         """Customer name must strip leading/trailing whitespace."""
         from app.schemas.customer import CustomerCreateSchema
 
-        schema = CustomerCreateSchema(
-            name="  John Doe  ", email="john@example.com"
-        )
+        schema = CustomerCreateSchema(name="  John Doe  ", email="john@example.com")
         assert schema.name == "John Doe"
 
     def test_customer_create_name_too_short(self) -> None:
@@ -49,9 +45,7 @@ class TestCustomerCreateSchema:
         from app.schemas.customer import CustomerCreateSchema
 
         try:
-            CustomerCreateSchema(
-                name="A" * 101, email="john@example.com"
-            )
+            CustomerCreateSchema(name="A" * 101, email="john@example.com")
         except ValidationError as e:
             assert any("name" in str(err["loc"]) for err in e.errors())
         else:
@@ -62,9 +56,7 @@ class TestCustomerCreateSchema:
         from app.schemas.customer import CustomerCreateSchema
 
         name = "A" * 100
-        schema = CustomerCreateSchema(
-            name=name, email="john@example.com"
-        )
+        schema = CustomerCreateSchema(name=name, email="john@example.com")
         assert schema.name == name
 
     def test_customer_create_invalid_email(self) -> None:
@@ -115,6 +107,4 @@ class TestCustomerResponseSchema:
         """CustomerResponseSchema must have from_attributes=True config."""
         from app.schemas.customer import CustomerResponseSchema
 
-        assert (
-            CustomerResponseSchema.model_config.get("from_attributes") is True
-        )
+        assert CustomerResponseSchema.model_config.get("from_attributes") is True

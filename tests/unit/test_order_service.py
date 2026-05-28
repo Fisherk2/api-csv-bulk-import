@@ -25,9 +25,7 @@ class TestOrderService:
 
         # Mock repositories
         mock_product_repo = AsyncMock()
-        mock_product_repo.get_by_ids.return_value = [
-            MagicMock(id=pid)
-        ]
+        mock_product_repo.get_by_ids.return_value = [MagicMock(id=pid)]
         mock_order_repo = AsyncMock()
 
         service = OrderService(
@@ -57,9 +55,7 @@ class TestOrderService:
         cid = uuid4()
 
         mock_product_repo = AsyncMock()
-        mock_product_repo.get_by_ids.return_value = [
-            MagicMock(id=pid)
-        ]
+        mock_product_repo.get_by_ids.return_value = [MagicMock(id=pid)]
         mock_order_repo = AsyncMock()
 
         service = OrderService(

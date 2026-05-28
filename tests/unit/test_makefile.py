@@ -54,9 +54,7 @@ class TestMakefile:
         """Every target from the spec must be in the Makefile."""
         targets = _extract_targets()
         missing = [t for t in REQUIRED_TARGETS if t not in targets]
-        assert not missing, (
-            f"Missing Makefile targets: {missing}"
-        )
+        assert not missing, f"Missing Makefile targets: {missing}"
 
     def test_help_is_default_target(self) -> None:
         """help should be the first/default target in the Makefile."""
@@ -73,9 +71,7 @@ class TestMakefile:
     def test_makefile_has_phony_declaration(self) -> None:
         """Makefile should declare .PHONY to prevent conflicts with files."""
         content = MAKEFILE_PATH.read_text(encoding="utf-8")
-        assert ".PHONY:" in content, (
-            "Makefile is missing .PHONY declaration"
-        )
+        assert ".PHONY:" in content, "Makefile is missing .PHONY declaration"
 
     def test_makefile_targets_have_help_comments(self) -> None:
         """Each target should have a ## comment for make help output."""

@@ -99,7 +99,9 @@ class TestSettingsOverrides:
         """Setting an env var should override the default value."""
         monkeypatch.setenv("ALGORITHM", "RS256")
         monkeypatch.setenv("SECRET_KEY", "test-secret-override")
-        monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
+        monkeypatch.setenv(
+            "DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test"
+        )
         monkeypatch.setenv("SYNC_DATABASE_URL", "postgresql://test:test@localhost/test")
 
         from app.config import Settings

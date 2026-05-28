@@ -35,6 +35,4 @@ class TestUserModelStructure:
 
         columns = {c.name for c in UserModel.__table__.columns}
         required = {"id", "username", "hashed_password", "is_active", "created_at"}
-        assert required.issubset(columns), (
-            f"Missing columns: {required - columns}"
-        )
+        assert required.issubset(columns), f"Missing columns: {required - columns}"

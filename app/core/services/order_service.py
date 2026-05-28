@@ -95,9 +95,7 @@ class OrderService:
             for item in s.items:
                 all_product_ids.add(item.product_id)
 
-        existing_products = await self._product_repo.get_by_ids(
-            list(all_product_ids)
-        )
+        existing_products = await self._product_repo.get_by_ids(list(all_product_ids))
         existing_pids: set[UUID] = {p.id for p in existing_products}
 
         # Filter valid schemas: remove orders with missing product references

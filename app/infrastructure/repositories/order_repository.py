@@ -53,9 +53,7 @@ class OrderRepository(IOrderRepository):
         )
         return [self._to_domain(row) for row in result.scalars().all()]
 
-    async def get_all(
-        self, skip: int = 0, limit: int = 100
-    ) -> list[Order]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[Order]:
         """Retrieve all orders with pagination, including items."""
         result = await self._session.execute(
             select(OrderModel)
@@ -65,9 +63,7 @@ class OrderRepository(IOrderRepository):
         )
         return [self._to_domain(row) for row in result.scalars().all()]
 
-    async def create(
-        self, order: Order, customer_id: UUID | None = None
-    ) -> Order:
+    async def create(self, order: Order, customer_id: UUID | None = None) -> Order:
         """Persist a new order with its items in a single transaction."""
         model = self._to_model(order)
         self._session.add(model)
@@ -120,9 +116,7 @@ class OrderRepository(IOrderRepository):
         try:
             engine = self._session.get_bind()
             insert_fn = (
-                pg_insert
-                if engine.dialect.name == "postgresql"
-                else sqlite_insert
+                pg_insert if engine.dialect.name == "postgresql" else sqlite_insert
             )
 
             # Track which orders were actually inserted (not skipped by ON CONFLICT)
@@ -139,17 +133,13 @@ class OrderRepository(IOrderRepository):
                 # PostgreSQL's ON CONFLICT DO NOTHING + RETURNING tells us
                 # which rows were actually inserted vs. skipped
                 if is_postgresql:
-                    returned_ids: set[UUID] = {
-                        row.id for row in result.fetchall()
-                    }
+                    returned_ids: set[UUID] = {row.id for row in result.fetchall()}
                     inserted_order_ids = returned_ids
 
             # Only insert items for orders that were actually created
             if item_values:
                 filtered_items = [
-                    iv
-                    for iv in item_values
-                    if iv["order_id"] in inserted_order_ids
+                    iv for iv in item_values if iv["order_id"] in inserted_order_ids
                 ]
                 if filtered_items:
                     stmt = (

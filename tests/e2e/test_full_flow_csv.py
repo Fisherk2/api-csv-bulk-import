@@ -16,9 +16,7 @@ import pytest
 pytestmark = pytest.mark.asyncio
 
 
-async def test_full_flow_login_upload_csv_export_csv(
-    client, auth_token, seeded_data
-):
+async def test_full_flow_login_upload_csv_export_csv(client, auth_token, seeded_data):
     """Login → upload CSV → export CSV → verify CSV rows match upload."""
     headers = {"Authorization": f"Bearer {auth_token}"}
 
@@ -41,9 +39,7 @@ async def test_full_flow_login_upload_csv_export_csv(
     upload_data = upload_response.json()
     assert upload_data["total"] >= 1
 
-    export_response = await client.get(
-        "/export?format=csv", headers=headers
-    )
+    export_response = await client.get("/export?format=csv", headers=headers)
     assert export_response.status_code == 200
     csv_text = export_response.text
     assert "order_id" in csv_text
@@ -54,9 +50,7 @@ async def test_full_flow_login_upload_csv_export_csv(
     assert cid in csv_text
 
 
-async def test_full_flow_health_check_in_flow(
-    client, auth_token, seeded_data
-):
+async def test_full_flow_health_check_in_flow(client, auth_token, seeded_data):
     """Health check must respond throughout the upload/export flow."""
     # Health before
     resp_before = await client.get("/")
@@ -70,10 +64,14 @@ async def test_full_flow_health_check_in_flow(
     # Upload
     await client.post(
         "/upload",
-        json={"orders": [{
-            "customer_id": cid,
-            "items": [{"product_id": pid, "quantity": 1, "price": 10.0}],
-        }]},
+        json={
+            "orders": [
+                {
+                    "customer_id": cid,
+                    "items": [{"product_id": pid, "quantity": 1, "price": 10.0}],
+                }
+            ]
+        },
         headers=headers,
     )
 

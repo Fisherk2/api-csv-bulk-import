@@ -94,4 +94,6 @@ class TestOrderItemModelStructure:
         """OrderItemModel must have order relationship."""
         from app.infrastructure.database.models.order import OrderItemModel
 
-        assert hasattr(OrderItemModel, "order"), "OrderItemModel must have order relationship"
+        assert hasattr(OrderItemModel, "order"), (
+            "OrderItemModel must have order relationship"
+        )

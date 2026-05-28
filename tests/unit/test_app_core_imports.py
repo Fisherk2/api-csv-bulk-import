@@ -16,7 +16,7 @@ CORE_DIR = PROJECT_ROOT / "app" / "core"
 FORBIDDEN_IMPORTS = {
     "sqlalchemy",
     "fastapi",
-    "starlette",        # FastAPI foundation
+    "starlette",  # FastAPI foundation
     "uvicorn",
     "http",
     "httpx",
@@ -104,13 +104,11 @@ class TestCoreLayerImports:
         """app/core/ must not import anything from FastAPI."""
         violations = _find_violations(
             lambda f, imports: (
-                f"{_relative_path(f)} imports fastapi"
-                if "fastapi" in imports
-                else None
+                f"{_relative_path(f)} imports fastapi" if "fastapi" in imports else None
             )
         )
-        assert not violations, (
-            "FastAPI imports found in domain layer:\n" + "\n".join(violations)
+        assert not violations, "FastAPI imports found in domain layer:\n" + "\n".join(
+            violations
         )
 
     def test_no_forbidden_external_imports_in_core(self) -> None:
@@ -123,8 +121,7 @@ class TestCoreLayerImports:
             )
         )
         assert not violations, (
-            "Forbidden external imports in domain layer:\n"
-            + "\n".join(violations)
+            "Forbidden external imports in domain layer:\n" + "\n".join(violations)
         )
 
     def test_core_only_imports_stdlib_and_itself(self) -> None:

@@ -30,9 +30,7 @@ async def _create_test_data(test_db_session) -> tuple:
     customer = await cust_repo.create(
         Customer(name="Test Customer", email="test@example.com")
     )
-    product = await prod_repo.create(
-        Product(name="Test Widget", price=10.0, stock=100)
-    )
+    product = await prod_repo.create(Product(name="Test Widget", price=10.0, stock=100))
     return customer, product
 
 
@@ -50,9 +48,7 @@ async def _create_auth_client(test_db_session, test_user):
 
     app.dependency_overrides[get_db] = override_get_db
 
-    client = AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    )
+    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
     login_response = await client.post(
         "/token",
@@ -455,15 +451,11 @@ class TestUploadEndpointEdgeCases:
                 "orders": [
                     {
                         "customer_id": str(cid),
-                        "items": [
-                            {"product_id": pid, "quantity": 1, "price": 10.0}
-                        ],
+                        "items": [{"product_id": pid, "quantity": 1, "price": 10.0}],
                     },
                     {
                         "customer_id": str(cid),
-                        "items": [
-                            {"product_id": pid, "quantity": 2, "price": 20.0}
-                        ],
+                        "items": [{"product_id": pid, "quantity": 2, "price": 20.0}],
                     },
                 ]
             },

@@ -117,8 +117,7 @@ def docker_stack(request: pytest.FixtureRequest) -> Generator[str, None, None]:
         logs = _run_compose(project_dir, "logs", "api")
         _run_compose(project_dir, "down")
         pytest.skip(
-            f"API did not become ready within 60s.\n"
-            f"API logs:\n{logs.stdout[-500:]}"
+            f"API did not become ready within 60s.\nAPI logs:\n{logs.stdout[-500:]}"
         )
         yield  # unreachable, but satisfies Generator type
 

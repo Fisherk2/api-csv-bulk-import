@@ -95,7 +95,9 @@ class TestTokenValidation:
         )
         assert response.status_code == 401
 
-    async def test_deleted_user_token_rejected(self, client, test_db_session, test_user):
+    async def test_deleted_user_token_rejected(
+        self, client, test_db_session, test_user
+    ):
         """A valid token for a deleted user must return 401."""
         from sqlalchemy import select
 

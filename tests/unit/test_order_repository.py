@@ -39,9 +39,7 @@ class TestOrderRepositoryCRUD:
         customer = await cust_repo.create(
             Customer(name="Test", email="test@example.com")
         )
-        product = await prod_repo.create(
-            Product(name="Widget", price=10.0, stock=100)
-        )
+        product = await prod_repo.create(Product(name="Widget", price=10.0, stock=100))
 
         # Create order with items
         order = Order(
@@ -77,9 +75,7 @@ class TestOrderRepositoryCRUD:
         customer = await cust_repo.create(
             Customer(name="Test", email="test@example.com")
         )
-        product = await prod_repo.create(
-            Product(name="Widget", price=10.0, stock=100)
-        )
+        product = await prod_repo.create(Product(name="Widget", price=10.0, stock=100))
 
         order = Order(
             customer_id=customer.id,
@@ -122,30 +118,27 @@ class TestOrderRepositoryCRUD:
         prod_repo = ProductRepository(session=test_db_session)
         order_repo = OrderRepository(session=test_db_session)
 
-        c1 = await cust_repo.create(
-            Customer(name="A", email="a@example.com")
-        )
-        c2 = await cust_repo.create(
-            Customer(name="B", email="b@example.com")
-        )
-        product = await prod_repo.create(
-            Product(name="Widget", price=10.0, stock=100)
-        )
+        c1 = await cust_repo.create(Customer(name="A", email="a@example.com"))
+        c2 = await cust_repo.create(Customer(name="B", email="b@example.com"))
+        product = await prod_repo.create(Product(name="Widget", price=10.0, stock=100))
 
         await order_repo.create(
-            Order(customer_id=c1.id, items=[
-                OrderItem(product_id=product.id, quantity=1, price=10.0)
-            ])
+            Order(
+                customer_id=c1.id,
+                items=[OrderItem(product_id=product.id, quantity=1, price=10.0)],
+            )
         )
         await order_repo.create(
-            Order(customer_id=c1.id, items=[
-                OrderItem(product_id=product.id, quantity=2, price=10.0)
-            ])
+            Order(
+                customer_id=c1.id,
+                items=[OrderItem(product_id=product.id, quantity=2, price=10.0)],
+            )
         )
         await order_repo.create(
-            Order(customer_id=c2.id, items=[
-                OrderItem(product_id=product.id, quantity=3, price=10.0)
-            ])
+            Order(
+                customer_id=c2.id,
+                items=[OrderItem(product_id=product.id, quantity=3, price=10.0)],
+            )
         )
 
         c1_orders = await order_repo.get_by_customer(c1.id)
@@ -171,15 +164,14 @@ class TestOrderRepositoryCRUD:
         customer = await cust_repo.create(
             Customer(name="Test", email="test@example.com")
         )
-        product = await prod_repo.create(
-            Product(name="Widget", price=10.0, stock=100)
-        )
+        product = await prod_repo.create(Product(name="Widget", price=10.0, stock=100))
 
         for _ in range(5):
             await order_repo.create(
-                Order(customer_id=customer.id, items=[
-                    OrderItem(product_id=product.id, quantity=1, price=10.0)
-                ])
+                Order(
+                    customer_id=customer.id,
+                    items=[OrderItem(product_id=product.id, quantity=1, price=10.0)],
+                )
             )
 
         page = await order_repo.get_all(skip=1, limit=3)
@@ -205,17 +197,17 @@ class TestOrderRepositoryCRUD:
         customer = await cust_repo.create(
             Customer(name="Test", email="test@example.com")
         )
-        product = await prod_repo.create(
-            Product(name="Widget", price=10.0, stock=100)
-        )
+        product = await prod_repo.create(Product(name="Widget", price=10.0, stock=100))
 
         orders = [
-            Order(customer_id=customer.id, items=[
-                OrderItem(product_id=product.id, quantity=1, price=10.0)
-            ]),
-            Order(customer_id=customer.id, items=[
-                OrderItem(product_id=product.id, quantity=2, price=10.0)
-            ]),
+            Order(
+                customer_id=customer.id,
+                items=[OrderItem(product_id=product.id, quantity=1, price=10.0)],
+            ),
+            Order(
+                customer_id=customer.id,
+                items=[OrderItem(product_id=product.id, quantity=2, price=10.0)],
+            ),
         ]
         created = await order_repo.create_batch(orders)
         assert len(created) == 2
@@ -242,7 +234,8 @@ class TestOrderRepositoryCRUD:
 
         repo = OrderRepository(session=test_db_session)
         mocker.patch.object(
-            test_db_session, "execute",
+            test_db_session,
+            "execute",
             side_effect=Exception("Simulated DB failure"),
         )
         order = Order(

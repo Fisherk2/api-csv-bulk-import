@@ -16,9 +16,7 @@ import pytest
 class TestRateLimitHeaders:
     """Rate limit headers should be present on /token responses."""
 
-    async def test_rate_limit_headers_present_on_token(
-        self, client, test_user
-    ) -> None:
+    async def test_rate_limit_headers_present_on_token(self, client, test_user) -> None:
         """X-RateLimit-* headers must appear on /token responses."""
         resp = await client.post(
             "/token",
@@ -72,12 +70,16 @@ class TestRateLimitExceeded:
                 return resp
         pytest.fail("Rate limit was not triggered after %d requests", low_limit + 1)
 
-    async def test_rate_limit_exceeded_returns_429(self, client, test_user, monkeypatch) -> None:
+    async def test_rate_limit_exceeded_returns_429(
+        self, client, test_user, monkeypatch
+    ) -> None:
         """Rapid requests to /token must eventually return 429."""
         resp = await self._trigger_rate_limit(client, test_user, monkeypatch)
         assert resp.status_code == 429
 
-    async def test_rate_limit_exceeded_response_format(self, client, test_user, monkeypatch) -> None:
+    async def test_rate_limit_exceeded_response_format(
+        self, client, test_user, monkeypatch
+    ) -> None:
         """429 responses must follow RFC 7807 Problem Details format."""
         resp = await self._trigger_rate_limit(client, test_user, monkeypatch)
         assert resp.status_code == 429
@@ -141,7 +143,9 @@ class TestRateLimitDoesNotInterfere:
             )
             if resp.status_code == 429:
                 return resp
-        pytest.fail("Upload rate limit was not triggered after %d requests", low_limit + 1)
+        pytest.fail(
+            "Upload rate limit was not triggered after %d requests", low_limit + 1
+        )
 
     async def test_upload_rate_limit_exceeded_returns_429(
         self, client, test_user, monkeypatch

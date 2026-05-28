@@ -18,9 +18,7 @@ class TestOrderItemCreateSchema:
         from app.schemas.order import OrderItemCreateSchema
 
         pid = uuid4()
-        schema = OrderItemCreateSchema(
-            product_id=pid, quantity=2, price=19.99
-        )
+        schema = OrderItemCreateSchema(product_id=pid, quantity=2, price=19.99)
         assert schema.product_id == pid
         assert schema.quantity == 2
         assert schema.price == 19.99
@@ -34,9 +32,7 @@ class TestOrderItemCreateSchema:
         from app.schemas.order import OrderItemCreateSchema
 
         try:
-            OrderItemCreateSchema(
-                product_id=uuid4(), quantity=0, price=10.0
-            )
+            OrderItemCreateSchema(product_id=uuid4(), quantity=0, price=10.0)
         except ValidationError as e:
             assert any("quantity" in str(err["loc"]) for err in e.errors())
         else:
@@ -51,9 +47,7 @@ class TestOrderItemCreateSchema:
         from app.schemas.order import OrderItemCreateSchema
 
         try:
-            OrderItemCreateSchema(
-                product_id=uuid4(), quantity=1, price=0
-            )
+            OrderItemCreateSchema(product_id=uuid4(), quantity=1, price=0)
         except ValidationError as e:
             assert any("price" in str(err["loc"]) for err in e.errors())
         else:
@@ -116,7 +110,9 @@ class TestBatchUploadRequestSchema:
             orders=[
                 OrderCreateSchema(
                     customer_id=cid,
-                    items=[OrderItemCreateSchema(product_id=pid, quantity=1, price=10.0)],
+                    items=[
+                        OrderItemCreateSchema(product_id=pid, quantity=1, price=10.0)
+                    ],
                 )
             ]
         )
@@ -143,9 +139,7 @@ class TestBatchUploadResponseSchema:
         """Response must include total, successful, failed, errors."""
         from app.schemas.order import BatchUploadResponseSchema
 
-        schema = BatchUploadResponseSchema(
-            total=10, successful=8, failed=2, errors=[]
-        )
+        schema = BatchUploadResponseSchema(total=10, successful=8, failed=2, errors=[])
         assert schema.total == 10
         assert schema.successful == 8
         assert schema.failed == 2
@@ -177,9 +171,7 @@ class TestBatchErrorDetailSchema:
         """Error defaults: type='about:blank', status=422, instance=None."""
         from app.schemas.order import BatchErrorDetailSchema
 
-        err = BatchErrorDetailSchema(
-            title="Test Error", row_number=1
-        )
+        err = BatchErrorDetailSchema(title="Test Error", row_number=1)
         assert err.type == "about:blank"
         assert err.status == 422
         assert err.instance is None
@@ -192,9 +184,7 @@ class TestOrderResponseSchema:
         """OrderResponseSchema must have from_attributes=True."""
         from app.schemas.order import OrderResponseSchema
 
-        assert (
-            OrderResponseSchema.model_config.get("from_attributes") is True
-        )
+        assert OrderResponseSchema.model_config.get("from_attributes") is True
 
 
 class TestOrderItemResponseSchema:
@@ -204,6 +194,4 @@ class TestOrderItemResponseSchema:
         """OrderItemResponseSchema must have from_attributes=True."""
         from app.schemas.order import OrderItemResponseSchema
 
-        assert (
-            OrderItemResponseSchema.model_config.get("from_attributes") is True
-        )
+        assert OrderItemResponseSchema.model_config.get("from_attributes") is True

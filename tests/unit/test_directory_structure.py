@@ -38,13 +38,8 @@ class TestDirectoryStructure:
 
     def test_all_app_directories_exist(self) -> None:
         """Every directory in the architecture spec must be present."""
-        missing = [
-            d for d in REQUIRED_DIRECTORIES
-            if not (PROJECT_ROOT / d).is_dir()
-        ]
-        assert not missing, (
-            f"Missing directories: {missing}"
-        )
+        missing = [d for d in REQUIRED_DIRECTORIES if not (PROJECT_ROOT / d).is_dir()]
+        assert not missing, f"Missing directories: {missing}"
 
     def test_every_python_package_has_init_py(self) -> None:
         """Every Python package must have an __init__.py with a docstring.
@@ -65,16 +60,12 @@ class TestDirectoryStructure:
             if not content:
                 failures.append(f"Empty __init__.py (no docstring): {dir_rel}")
 
-        assert not failures, (
-            "__init__.py issues:\n" + "\n".join(failures)
-        )
+        assert not failures, "__init__.py issues:\n" + "\n".join(failures)
 
     def test_migrations_versions_has_gitkeep(self) -> None:
         """migrations/versions/ must have a .gitkeep file."""
         gitkeep = PROJECT_ROOT / "migrations" / "versions" / ".gitkeep"
-        assert gitkeep.exists(), (
-            "migrations/versions/.gitkeep is missing"
-        )
+        assert gitkeep.exists(), "migrations/versions/.gitkeep is missing"
 
     def test_app_directory_count_matches_spec(self) -> None:
         """The number of app/ directories should match the architecture spec."""
@@ -84,9 +75,7 @@ class TestDirectoryStructure:
             for p in app_root.rglob("*")
             if p.is_dir() and p.name != "__pycache__"
         )
-        expected_app_dirs = [
-            d for d in REQUIRED_DIRECTORIES if d.startswith("app")
-        ]
+        expected_app_dirs = [d for d in REQUIRED_DIRECTORIES if d.startswith("app")]
         unexpected = set(actual_dirs) - set(expected_app_dirs)
         assert not unexpected, (
             f"Unexpected directories under app/: {sorted(unexpected)}"
@@ -107,6 +96,5 @@ class TestDirectoryStructure:
                 )
 
         assert not failures, (
-            "Docstrings should describe the package purpose:\n"
-            + "\n".join(failures)
+            "Docstrings should describe the package purpose:\n" + "\n".join(failures)
         )

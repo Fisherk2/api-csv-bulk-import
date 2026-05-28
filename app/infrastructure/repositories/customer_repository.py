@@ -44,9 +44,7 @@ class CustomerRepository(ICustomerRepository):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
-    async def get_all(
-        self, skip: int = 0, limit: int = 100
-    ) -> list[Customer]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[Customer]:
         """Retrieve all customers with pagination."""
         result = await self._session.execute(
             select(CustomerModel).offset(skip).limit(limit)
@@ -60,9 +58,7 @@ class CustomerRepository(ICustomerRepository):
         await self._session.flush()
         return self._to_domain(model)
 
-    async def create_batch(
-        self, customers: list[Customer]
-    ) -> list[Customer]:
+    async def create_batch(self, customers: list[Customer]) -> list[Customer]:
         """Insert multiple customers, skipping duplicates by email.
 
         Uses INSERT ... ON CONFLICT (email) DO NOTHING for email-based
@@ -94,9 +90,7 @@ class CustomerRepository(ICustomerRepository):
         try:
             engine = self._session.get_bind()
             insert_fn = (
-                pg_insert
-                if engine.dialect.name == "postgresql"
-                else sqlite_insert
+                pg_insert if engine.dialect.name == "postgresql" else sqlite_insert
             )
             stmt = (
                 insert_fn(CustomerModel)
@@ -113,14 +107,10 @@ class CustomerRepository(ICustomerRepository):
             raise
         return [self._to_domain(m) for m in models]
 
-    async def get_by_ids(
-        self, customer_ids: list[UUID]
-    ) -> list[Customer]:
+    async def get_by_ids(self, customer_ids: list[UUID]) -> list[Customer]:
         """Retrieve multiple customers by UUIDs."""
         result = await self._session.execute(
-            select(CustomerModel).where(
-                CustomerModel.id.in_(customer_ids)
-            )
+            select(CustomerModel).where(CustomerModel.id.in_(customer_ids))
         )
         return [self._to_domain(row) for row in result.scalars().all()]
 

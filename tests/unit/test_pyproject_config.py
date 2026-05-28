@@ -33,9 +33,7 @@ class TestPyprojectToml:
         assert project, "[project] section is missing"
         assert "name" in project, "[project] is missing 'name'"
         assert "version" in project, "[project] is missing 'version'"
-        assert "requires-python" in project, (
-            "[project] is missing 'requires-python'"
-        )
+        assert "requires-python" in project, "[project] is missing 'requires-python'"
 
     def test_python_version_is_at_least_3_12(self) -> None:
         """Python requirement must be >= 3.12."""
@@ -71,9 +69,7 @@ class TestPyprojectToml:
         data = _load_pyproject()
         mypy = data.get("tool", {}).get("mypy", {})
         assert mypy, "[tool.mypy] section is missing"
-        assert mypy.get("strict") is True, (
-            "[tool.mypy] strict must be True"
-        )
+        assert mypy.get("strict") is True, "[tool.mypy] strict must be True"
         assert mypy.get("python_version") == "3.12", (
             f"mypy python_version should be 3.12, got {mypy.get('python_version')}"
         )

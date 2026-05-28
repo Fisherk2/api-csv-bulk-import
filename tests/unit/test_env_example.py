@@ -70,9 +70,7 @@ class TestEnvExample:
         """All required environment variables must be listed."""
         env_vars = _parse_env_vars()
         missing = [v for v in REQUIRED_VARIABLES if v not in env_vars]
-        assert not missing, (
-            f"Missing required variables in .env.example: {missing}"
-        )
+        assert not missing, f"Missing required variables in .env.example: {missing}"
 
     def test_no_real_secrets_in_env_example(self) -> None:
         """.env.example must use placeholders, not real secrets."""
@@ -89,7 +87,9 @@ class TestEnvExample:
         env_vars = _parse_env_vars()
         secret_key = env_vars.get("SECRET_KEY", "")
         placeholder_markers = ["change-me", "change_me", "your_", "placeholder", "<"]
-        is_placeholder = any(marker in secret_key.lower() for marker in placeholder_markers)
+        is_placeholder = any(
+            marker in secret_key.lower() for marker in placeholder_markers
+        )
         # Also consider short values as placeholders (real keys should be long)
         is_short = len(secret_key) < 40
         assert is_placeholder or is_short, (
@@ -100,9 +100,11 @@ class TestEnvExample:
         """DATABASE_URL must use placeholder credentials."""
         env_vars = _parse_env_vars()
         db_url = env_vars.get("DATABASE_URL", "")
-        assert "change-me" in db_url.lower() or "your_" in db_url.lower() or "localhost" in db_url, (
-            f"DATABASE_URL looks like it contains real credentials: {db_url}"
-        )
+        assert (
+            "change-me" in db_url.lower()
+            or "your_" in db_url.lower()
+            or "localhost" in db_url
+        ), f"DATABASE_URL looks like it contains real credentials: {db_url}"
 
     def test_debug_is_false(self) -> None:
         """DEBUG must default to false for safety."""
@@ -115,7 +117,9 @@ class TestEnvExample:
     def test_variables_have_comments(self) -> None:
         """.env.example should have comments explaining each variable."""
         content = ENV_EXAMPLE_PATH.read_text(encoding="utf-8")
-        comment_lines = [ln for ln in content.splitlines() if ln.strip().startswith("#")]
+        comment_lines = [
+            ln for ln in content.splitlines() if ln.strip().startswith("#")
+        ]
         assert len(comment_lines) >= 5, (
             f".env.example has only {len(comment_lines)} comment lines. "
             "Expected descriptive comments for variables."

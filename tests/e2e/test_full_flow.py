@@ -41,9 +41,7 @@ def _make_order(
 # ── E2E Flow Tests ──────────────────────────────────────────────────
 
 
-async def test_full_flow_login_upload_json_export_json(
-    client, auth_token, seeded_data
-):
+async def test_full_flow_login_upload_json_export_json(client, auth_token, seeded_data):
     """Login → upload 3 JSON orders → export JSON → verify data integrity."""
     headers = _auth_headers(auth_token)
 
@@ -51,41 +49,49 @@ async def test_full_flow_login_upload_json_export_json(
         "orders": [
             {
                 "customer_id": str(seeded_data["customer"].id),
-                "items": [{
-                    "product_id": str(seeded_data["product_a"].id),
-                    "quantity": 2, "price": 10.0,
-                }],
-            },
-            {
-                "customer_id": str(seeded_data["customer"].id),
-                "items": [{
-                    "product_id": str(seeded_data["product_b"].id),
-                    "quantity": 1, "price": 25.0,
-                }],
+                "items": [
+                    {
+                        "product_id": str(seeded_data["product_a"].id),
+                        "quantity": 2,
+                        "price": 10.0,
+                    }
+                ],
             },
             {
                 "customer_id": str(seeded_data["customer"].id),
                 "items": [
-                    {"product_id": str(seeded_data["product_a"].id),
-                     "quantity": 5, "price": 10.0},
-                    {"product_id": str(seeded_data["product_b"].id),
-                     "quantity": 3, "price": 25.0},
+                    {
+                        "product_id": str(seeded_data["product_b"].id),
+                        "quantity": 1,
+                        "price": 25.0,
+                    }
+                ],
+            },
+            {
+                "customer_id": str(seeded_data["customer"].id),
+                "items": [
+                    {
+                        "product_id": str(seeded_data["product_a"].id),
+                        "quantity": 5,
+                        "price": 10.0,
+                    },
+                    {
+                        "product_id": str(seeded_data["product_b"].id),
+                        "quantity": 3,
+                        "price": 25.0,
+                    },
                 ],
             },
         ]
     }
-    upload_response = await client.post(
-        "/upload", json=upload_payload, headers=headers
-    )
+    upload_response = await client.post("/upload", json=upload_payload, headers=headers)
     assert upload_response.status_code == 200
     upload_data = upload_response.json()
     assert upload_data["total"] == 3
     assert upload_data["successful"] == 3
     assert upload_data["failed"] == 0
 
-    export_response = await client.get(
-        "/export?format=json", headers=headers
-    )
+    export_response = await client.get("/export?format=json", headers=headers)
     assert export_response.status_code == 200
     exported = export_response.json()
     assert len(exported) == 3
@@ -99,9 +105,7 @@ async def test_full_flow_login_upload_json_export_json(
     assert len(multi_item) == 1
 
 
-async def test_full_flow_partial_upload_207_export(
-    client, auth_token, seeded_data
-):
+async def test_full_flow_partial_upload_207_export(client, auth_token, seeded_data):
     """Login → upload mixed valid/invalid → 207 → export only valid orders."""
     headers = _auth_headers(auth_token)
     cid = str(seeded_data["customer"].id)
@@ -114,26 +118,20 @@ async def test_full_flow_partial_upload_207_export(
             {"customer_id": cid, "items": []},  # INVALID
         ]
     }
-    upload_response = await client.post(
-        "/upload", json=upload_payload, headers=headers
-    )
+    upload_response = await client.post("/upload", json=upload_payload, headers=headers)
     assert upload_response.status_code == 207
     upload_data = upload_response.json()
     assert upload_data["total"] == 4
     assert upload_data["successful"] == 2
     assert upload_data["failed"] == 2
 
-    export_response = await client.get(
-        "/export?format=json", headers=headers
-    )
+    export_response = await client.get("/export?format=json", headers=headers)
     assert export_response.status_code == 200
     exported = export_response.json()
     assert len(exported) == 2  # Only valid orders exported
 
 
-async def test_full_flow_all_invalid_upload_422(
-    client, auth_token, seeded_data
-):
+async def test_full_flow_all_invalid_upload_422(client, auth_token, seeded_data):
     """Login → upload all-invalid orders → 422."""
     headers = _auth_headers(auth_token)
     cid = str(seeded_data["customer"].id)
@@ -144,15 +142,11 @@ async def test_full_flow_all_invalid_upload_422(
             {"customer_id": cid, "items": []},
         ]
     }
-    response = await client.post(
-        "/upload", json=upload_payload, headers=headers
-    )
+    response = await client.post("/upload", json=upload_payload, headers=headers)
     assert response.status_code == 422
 
 
-async def test_full_flow_multi_step_sequence(
-    client, auth_token, seeded_data
-):
+async def test_full_flow_multi_step_sequence(client, auth_token, seeded_data):
     """Upload in multiple steps → cumulative state is correct."""
     headers = _auth_headers(auth_token)
     cid = str(seeded_data["customer"].id)
@@ -160,7 +154,9 @@ async def test_full_flow_multi_step_sequence(
 
     # Step 1: Upload 2 orders
     resp1 = await client.post(
-        "/upload", json={"orders": [_make_order(cid, pid), _make_order(cid, pid)]}, headers=headers
+        "/upload",
+        json={"orders": [_make_order(cid, pid), _make_order(cid, pid)]},
+        headers=headers,
     )
     assert resp1.status_code == 200
     assert resp1.json()["successful"] == 2
@@ -171,7 +167,15 @@ async def test_full_flow_multi_step_sequence(
 
     # Step 2: Upload 3 more orders
     resp2 = await client.post(
-        "/upload", json={"orders": [_make_order(cid, pid), _make_order(cid, pid), _make_order(cid, pid)]}, headers=headers
+        "/upload",
+        json={
+            "orders": [
+                _make_order(cid, pid),
+                _make_order(cid, pid),
+                _make_order(cid, pid),
+            ]
+        },
+        headers=headers,
     )
     assert resp2.status_code == 200
     assert resp2.json()["successful"] == 3
@@ -193,20 +197,14 @@ async def test_full_flow_unauthenticated_rejected(client):
     assert export_resp.status_code == 401
 
 
-async def test_full_flow_export_formats(
-    client, auth_token, seeded_data
-):
+async def test_full_flow_export_formats(client, auth_token, seeded_data):
     """Upload → export JSON → export CSV → both formats contain same data."""
     headers = _auth_headers(auth_token)
     cid = str(seeded_data["customer"].id)
     pid = str(seeded_data["product_a"].id)
 
-    upload_payload = {
-        "orders": [_make_order(cid, pid)]
-    }
-    upload_resp = await client.post(
-        "/upload", json=upload_payload, headers=headers
-    )
+    upload_payload = {"orders": [_make_order(cid, pid)]}
+    upload_resp = await client.post("/upload", json=upload_payload, headers=headers)
     assert upload_resp.status_code == 200
 
     # Export JSON
@@ -225,49 +223,34 @@ async def test_full_flow_export_formats(
     assert str(json_data[0]["customer_id"]) in csv_text
 
 
-async def test_full_flow_export_pagination(
-    client, auth_token, seeded_data
-):
+async def test_full_flow_export_pagination(client, auth_token, seeded_data):
     """Upload 10 orders → export with skip/limit → verify pagination."""
     headers = _auth_headers(auth_token)
     cid = str(seeded_data["customer"].id)
     pid = str(seeded_data["product_a"].id)
 
-    orders = [
-        _make_order(cid, pid, quantity=i + 1)
-        for i in range(10)
-    ]
-    upload_resp = await client.post(
-        "/upload", json={"orders": orders}, headers=headers
-    )
+    orders = [_make_order(cid, pid, quantity=i + 1) for i in range(10)]
+    upload_resp = await client.post("/upload", json={"orders": orders}, headers=headers)
     assert upload_resp.status_code == 200
     assert upload_resp.json()["successful"] == 10
 
     # Page 1: skip=0, limit=3
-    page1 = await client.get(
-        "/export?format=json&skip=0&limit=3", headers=headers
-    )
+    page1 = await client.get("/export?format=json&skip=0&limit=3", headers=headers)
     assert page1.status_code == 200
     assert len(page1.json()) == 3
 
     # Page 2: skip=3, limit=3
-    page2 = await client.get(
-        "/export?format=json&skip=3&limit=3", headers=headers
-    )
+    page2 = await client.get("/export?format=json&skip=3&limit=3", headers=headers)
     assert page2.status_code == 200
     assert len(page2.json()) == 3
 
     # Page 4 (last): skip=9, limit=3
-    page4 = await client.get(
-        "/export?format=json&skip=9&limit=3", headers=headers
-    )
+    page4 = await client.get("/export?format=json&skip=9&limit=3", headers=headers)
     assert page4.status_code == 200
     assert len(page4.json()) == 1
 
 
-async def test_full_flow_upload_batch_size_enforcement(
-    client, auth_token, seeded_data
-):
+async def test_full_flow_upload_batch_size_enforcement(client, auth_token, seeded_data):
     """Upload exceeding MAX_BATCH_SIZE must return 413."""
     from app.config import settings
 

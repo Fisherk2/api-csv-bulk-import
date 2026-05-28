@@ -28,16 +28,12 @@ class IOrderRepository(ABC):
         ...
 
     @abstractmethod
-    async def get_all(
-        self, skip: int = 0, limit: int = 100
-    ) -> list[Order]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[Order]:
         """Retrieve all orders with pagination, including items."""
         ...
 
     @abstractmethod
-    async def create(
-        self, order: Order, customer_id: UUID | None = None
-    ) -> Order:
+    async def create(self, order: Order, customer_id: UUID | None = None) -> Order:
         """Persist a new order with its items in a single transaction."""
         ...
 
