@@ -11,9 +11,10 @@ import os
 # Disable global rate limiting for all tests to prevent flaky test behavior.
 # Must be set before any app config imports (like settings.RATE_LIMIT_PER_MINUTE).
 os.environ["RATE_LIMIT_PER_MINUTE"] = "0"
-# Set a high per-endpoint token limit so rate limit tests don't interfere
+# Set high per-endpoint rate limits so rate limit tests don't interfere
 # with each other (the shared limiter state persists across test files).
 os.environ["TOKEN_RATE_LIMIT"] = "100000"
+os.environ["UPLOAD_RATE_LIMIT"] = "100000"
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -80,13 +81,14 @@ async def test_user(test_db_session):
     from app.infrastructure.auth.password_service import PasswordService
     from app.infrastructure.database.models.user import UserModel
 
-    hashed = PasswordService.hash_password("test123")
+    # Test-only password — not used in production
+    hashed = PasswordService.hash_password("Test1234")
     user = UserModel(username="testuser", hashed_password=hashed)
     test_db_session.add(user)
     await test_db_session.flush()
 
     return {
         "username": "testuser",
-        "password": "test123",
+        "password": "Test1234",
         "user_id": str(user.id),
     }

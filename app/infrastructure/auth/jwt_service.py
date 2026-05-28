@@ -1,17 +1,23 @@
 """JWT token creation and verification service.
 
 Handles JWT encoding/decoding using HS256 algorithm with configurable
-expiration. Tokens include a 'sub' claim with the username.
+expiration. Tokens include 'sub' (username), 'aud' (audience), and
+'iss' (issuer) claims for proper validation and scope restriction.
 """
 
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from uuid import uuid4
 
 from jose import JWTError, jwt
 
 from app.config import settings
 from app.schemas.user import TokenDataSchema
+
+# JWT audience and issuer — used for token scope validation
+JWT_AUDIENCE = settings.APP_NAME
+JWT_ISSUER = settings.APP_NAME
 
 
 class JWTService:
@@ -40,6 +46,9 @@ class JWTService:
 
         payload = {
             "sub": username,
+            "aud": JWT_AUDIENCE,
+            "iss": JWT_ISSUER,
+            "jti": str(uuid4()),
             "iat": now,
             "exp": expire,
         }
@@ -48,6 +57,8 @@ class JWTService:
     @staticmethod
     def verify_token(token: str) -> TokenDataSchema | None:
         """Verify and decode a JWT access token.
+
+        Validates the token signature, expiration, audience, and issuer.
 
         Args:
             token: The JWT string to verify.
@@ -60,6 +71,8 @@ class JWTService:
                 token,
                 settings.SECRET_KEY,
                 algorithms=[settings.ALGORITHM],
+                audience=JWT_AUDIENCE,
+                issuer=JWT_ISSUER,
             )
             username: str | None = payload.get("sub")
             if username is None:

@@ -55,7 +55,7 @@ class TestTokenEndpoint:
         from app.infrastructure.auth.password_service import PasswordService
         from app.infrastructure.database.models.user import UserModel
 
-        hashed = PasswordService.hash_password("test123")
+        hashed = PasswordService.hash_password("Test1234")
         user = UserModel(
             username="inactiveuser", hashed_password=hashed, is_active=False
         )
@@ -64,7 +64,7 @@ class TestTokenEndpoint:
 
         response = await client.post(
             "/token",
-            data={"username": "inactiveuser", "password": "test123"},
+            data={"username": "inactiveuser", "password": "Test1234"},
         )
         assert response.status_code == 401
 
@@ -80,3 +80,101 @@ class TestHealthEndpoint:
         data = response.json()
         assert data["status"] == "ok"
         assert "version" in data
+
+
+@pytest.mark.asyncio
+class TestTokenValidation:
+    """Token validation must reject invalid, expired, deleted, and inactive users."""
+
+    async def test_invalid_token_format_rejected(self, client):
+        """Sending a garbage Bearer token must return 401."""
+        response = await client.post(
+            "/upload",
+            json={"orders": []},
+            headers={"Authorization": "Bearer invalid-token-format"},
+        )
+        assert response.status_code == 401
+
+    async def test_deleted_user_token_rejected(self, client, test_db_session, test_user):
+        """A valid token for a deleted user must return 401."""
+        from sqlalchemy import select
+
+        from app.infrastructure.auth.jwt_service import JWTService
+        from app.infrastructure.database.models.user import UserModel
+
+        # Get the test user (already created by test_user fixture)
+        result = await test_db_session.execute(
+            select(UserModel).where(UserModel.username == test_user["username"])
+        )
+        user = result.scalar_one()
+
+        # Create a token for this user
+        token = JWTService.create_token(username=user.username)
+
+        # Delete the user from the database
+        await test_db_session.delete(user)
+        await test_db_session.flush()
+
+        # Try to use the token — should fail
+        response = await client.post(
+            "/upload",
+            json={
+                "orders": [
+                    {
+                        "customer_id": "00000000-0000-0000-0000-000000000000",
+                        "items": [
+                            {
+                                "product_id": "00000000-0000-0000-0000-000000000000",
+                                "quantity": 1,
+                                "price": 10.0,
+                            }
+                        ],
+                    }
+                ]
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 401
+
+    async def test_inactive_user_token_rejected(
+        self, client, test_db_session, test_user
+    ):
+        """A valid token for a deactivated user must return 401."""
+        from sqlalchemy import select
+
+        from app.infrastructure.auth.jwt_service import JWTService
+        from app.infrastructure.database.models.user import UserModel
+
+        # Get the test user (already created by test_user fixture)
+        result = await test_db_session.execute(
+            select(UserModel).where(UserModel.username == test_user["username"])
+        )
+        user = result.scalar_one()
+
+        # Create a token for this user
+        token = JWTService.create_token(username=user.username)
+
+        # Deactivate the user
+        user.is_active = False
+        await test_db_session.flush()
+
+        # Try to use the token — should fail
+        response = await client.post(
+            "/upload",
+            json={
+                "orders": [
+                    {
+                        "customer_id": "00000000-0000-0000-0000-000000000000",
+                        "items": [
+                            {
+                                "product_id": "00000000-0000-0000-0000-000000000000",
+                                "quantity": 1,
+                                "price": 10.0,
+                            }
+                        ],
+                    }
+                ]
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 401

@@ -55,20 +55,20 @@ class TestPasswordService:
         """hash_password must return a string."""
         from app.infrastructure.auth.password_service import PasswordService
 
-        hashed = PasswordService.hash_password("test123")
+        hashed = PasswordService.hash_password("Test1234")
         assert isinstance(hashed, str)
-        assert hashed != "test123"
+        assert hashed != "Test1234"
 
     def test_verify_correct_password(self) -> None:
         """verify_password must return True for correct password."""
         from app.infrastructure.auth.password_service import PasswordService
 
-        hashed = PasswordService.hash_password("test123")
-        assert PasswordService.verify_password("test123", hashed) is True
+        hashed = PasswordService.hash_password("Test1234")
+        assert PasswordService.verify_password("Test1234", hashed) is True
 
     def test_verify_wrong_password(self) -> None:
         """verify_password must return False for wrong password."""
         from app.infrastructure.auth.password_service import PasswordService
 
-        hashed = PasswordService.hash_password("test123")
-        assert PasswordService.verify_password("wrong", hashed) is False
+        hashed = PasswordService.hash_password("Test1234")
+        assert PasswordService.verify_password("Wrong123", hashed) is False

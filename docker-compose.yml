@@ -30,6 +30,8 @@ services:
       - MAX_FILE_SIZE_MB=10
       # Rate limiting (disabled in tests, active otherwise)
       - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-100}
+      - TOKEN_RATE_LIMIT=${TOKEN_RATE_LIMIT:-20}
+      - UPLOAD_RATE_LIMIT=${UPLOAD_RATE_LIMIT:-30}
       # CORS
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:8000}
       # Debug mode (true for development with hot-reload)

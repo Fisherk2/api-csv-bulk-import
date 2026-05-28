@@ -84,18 +84,44 @@ def parse_csv_to_orders(content: str) -> list[dict[str, Any]]:
             )
 
     orders_by_customer: dict[str, dict[str, Any]] = {}
-    for row in rows:
+    for row_number, row in enumerate(rows, start=1):
         email = row.get("customer_email", "")
         if email not in orders_by_customer:
             orders_by_customer[email] = {
                 "customer_id": row.get("customer_id", ""),
                 "items": [],
             }
+
+        # Safely parse numeric values with error context
+        raw_quantity = row.get("quantity", "1")
+        raw_price = row.get("price", "0")
+        try:
+            quantity = int(raw_quantity)
+        except (ValueError, TypeError) as exc:
+            raise ValueError(
+                f"Row {row_number}: invalid quantity '{raw_quantity}'"
+            ) from exc
+        try:
+            price = float(raw_price)
+        except (ValueError, TypeError) as exc:
+            raise ValueError(
+                f"Row {row_number}: invalid price '{raw_price}'"
+            ) from exc
+
+        if quantity < 1:
+            raise ValueError(
+                f"Row {row_number}: quantity must be at least 1, got {quantity}"
+            )
+        if price < 0:
+            raise ValueError(
+                f"Row {row_number}: price must be non-negative, got {price}"
+            )
+
         orders_by_customer[email]["items"].append(
             {
                 "product_id": row.get("product_id", ""),
-                "quantity": int(row.get("quantity", 1)),
-                "price": float(row.get("price", 0)),
+                "quantity": quantity,
+                "price": price,
             }
         )
 

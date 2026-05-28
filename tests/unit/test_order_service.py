@@ -1,7 +1,7 @@
 """Tests for OrderService (T15 verification).
 
-Validates order orchestration: validation, customer resolution,
-product validation, and persistence via repository interfaces.
+Validates order orchestration: validation, product FK validation,
+and persistence via repository interfaces.
 """
 
 from __future__ import annotations
@@ -24,8 +24,6 @@ class TestOrderService:
         cid = uuid4()
 
         # Mock repositories
-        mock_customer_repo = AsyncMock()
-        mock_customer_repo.get_by_ids.return_value = []
         mock_product_repo = AsyncMock()
         mock_product_repo.get_by_ids.return_value = [
             MagicMock(id=pid)
@@ -33,7 +31,6 @@ class TestOrderService:
         mock_order_repo = AsyncMock()
 
         service = OrderService(
-            customer_repo=mock_customer_repo,
             product_repo=mock_product_repo,
             order_repo=mock_order_repo,
         )
@@ -59,8 +56,6 @@ class TestOrderService:
         pid = uuid4()
         cid = uuid4()
 
-        mock_customer_repo = AsyncMock()
-        mock_customer_repo.get_by_ids.return_value = []
         mock_product_repo = AsyncMock()
         mock_product_repo.get_by_ids.return_value = [
             MagicMock(id=pid)
@@ -68,7 +63,6 @@ class TestOrderService:
         mock_order_repo = AsyncMock()
 
         service = OrderService(
-            customer_repo=mock_customer_repo,
             product_repo=mock_product_repo,
             order_repo=mock_order_repo,
         )
@@ -96,12 +90,10 @@ class TestOrderService:
         from app.core.services.order_service import OrderService
 
         cid = uuid4()
-        mock_customer_repo = AsyncMock()
         mock_product_repo = AsyncMock()
         mock_order_repo = AsyncMock()
 
         service = OrderService(
-            customer_repo=mock_customer_repo,
             product_repo=mock_product_repo,
             order_repo=mock_order_repo,
         )
@@ -125,14 +117,11 @@ class TestOrderService:
         cid = uuid4()
         fake_pid = uuid4()
 
-        mock_customer_repo = AsyncMock()
-        mock_customer_repo.get_by_ids.return_value = []
         mock_product_repo = AsyncMock()
         mock_product_repo.get_by_ids.return_value = []  # No products exist
         mock_order_repo = AsyncMock()
 
         service = OrderService(
-            customer_repo=mock_customer_repo,
             product_repo=mock_product_repo,
             order_repo=mock_order_repo,
         )
@@ -158,12 +147,11 @@ class TestOrderService:
         assert "Product(s) not found" in result.errors[1].detail
 
     @staticmethod
-    def _setup_service(mock_customer_repo, mock_product_repo, mock_order_repo):
+    def _setup_service(mock_product_repo, mock_order_repo):
         """Create OrderService with mocked repos."""
         from app.core.services.order_service import OrderService
 
         return OrderService(
-            customer_repo=mock_customer_repo,
             product_repo=mock_product_repo,
             order_repo=mock_order_repo,
         )

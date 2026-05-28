@@ -376,6 +376,29 @@ class TestUploadEndpointCSVEdgeCases:
         )
         assert response.status_code == 413
 
+    async def test_csv_upload_file_too_large_413(self, monkeypatch) -> None:
+        """CSV file exceeding MAX_FILE_SIZE_MB must return 413."""
+        import io
+
+        monkeypatch.setattr(
+            "app.infrastructure.api.endpoints.upload.settings.MAX_FILE_SIZE_MB", 1
+        )
+        # Create a 2 MB CSV content
+        large_content = "x" * (2 * 1024 * 1024)
+
+        response = await self.auth_client.post(
+            "/upload",
+            files={
+                "file": (
+                    "large.csv",
+                    io.BytesIO(large_content.encode()),
+                    "text/csv",
+                )
+            },
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+        assert response.status_code == 413
+
 
 @pytest.mark.asyncio
 class TestUploadEndpointEdgeCases:

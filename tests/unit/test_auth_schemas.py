@@ -81,9 +81,48 @@ class TestUserCreateSchema:
         """Valid username and password must pass validation."""
         from app.schemas.user import UserCreateSchema
 
-        schema = UserCreateSchema(username="testuser", password="secure123")
+        schema = UserCreateSchema(username="testuser", password="Secure123")
         assert schema.username == "testuser"
-        assert schema.password == "secure123"
+        assert schema.password == "Secure123"
+
+    def test_user_create_password_no_uppercase(self) -> None:
+        """Password without uppercase letter must fail validation."""
+        from pydantic import ValidationError
+
+        from app.schemas.user import UserCreateSchema
+
+        try:
+            UserCreateSchema(username="testuser", password="secure123")
+        except ValidationError as e:
+            assert any("uppercase" in str(err["msg"]) for err in e.errors())
+        else:
+            raise AssertionError("ValidationError not raised")
+
+    def test_user_create_password_no_lowercase(self) -> None:
+        """Password without lowercase letter must fail validation."""
+        from pydantic import ValidationError
+
+        from app.schemas.user import UserCreateSchema
+
+        try:
+            UserCreateSchema(username="testuser", password="SECURE123")
+        except ValidationError as e:
+            assert any("lowercase" in str(err["msg"]) for err in e.errors())
+        else:
+            raise AssertionError("ValidationError not raised")
+
+    def test_user_create_password_no_digit(self) -> None:
+        """Password without digit must fail validation."""
+        from pydantic import ValidationError
+
+        from app.schemas.user import UserCreateSchema
+
+        try:
+            UserCreateSchema(username="testuser", password="SecurePass")
+        except ValidationError as e:
+            assert any("digit" in str(err["msg"]) for err in e.errors())
+        else:
+            raise AssertionError("ValidationError not raised")
 
     def test_user_create_username_too_short(self) -> None:
         """Username shorter than 3 chars must fail validation."""
@@ -105,7 +144,7 @@ class TestUserCreateSchema:
         from app.schemas.user import UserCreateSchema
 
         try:
-            UserCreateSchema(username="testuser", password="short")
+            UserCreateSchema(username="testuser", password="Sh0rt")
         except ValidationError as e:
             assert any("password" in str(err["loc"]) for err in e.errors())
         else:

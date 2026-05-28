@@ -13,17 +13,18 @@ from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, stat
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
+from app.config import settings
 from app.core.services.order_service import OrderService
 from app.infrastructure.auth.dependencies import get_current_user
 from app.infrastructure.database.session import get_db
-from app.infrastructure.repositories.customer_repository import (
-    CustomerRepository,
-)
+from app.infrastructure.rate_limiter import limiter
 from app.infrastructure.repositories.order_repository import OrderRepository
 from app.infrastructure.repositories.product_repository import (
     ProductRepository,
 )
 from app.schemas.user import UserResponseSchema
+from app.utils.csv_parser import parse_csv_to_orders
+from app.utils.file_utils import validate_file_size
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,6 @@ router = APIRouter(tags=["upload"])
 async def _get_order_service(db: AsyncSession) -> OrderService:
     """Build an OrderService with concrete repository implementations."""
     return OrderService(
-        customer_repo=CustomerRepository(session=db),
         product_repo=ProductRepository(session=db),
         order_repo=OrderRepository(session=db),
     )
@@ -41,8 +41,6 @@ async def _get_order_service(db: AsyncSession) -> OrderService:
 
 async def _parse_json_upload(request: Request) -> list[dict[str, Any]]:
     """Parse JSON body into list of order dicts."""
-    from app.config import settings
-
     try:
         body_data = await request.json()
     except Exception:
@@ -80,6 +78,7 @@ async def _parse_json_upload(request: Request) -> list[dict[str, Any]]:
 
 
 @router.post("/upload")
+@limiter.limit(lambda: f"{settings.UPLOAD_RATE_LIMIT}/minute")
 async def upload(
     request: Request,
     file: UploadFile | None = None,
@@ -99,13 +98,18 @@ async def upload(
     service = await _get_order_service(db)
 
     if file is not None:
+        # Validate content type before reading
+        allowed_types = {"text/csv", "application/vnd.ms-excel", "text/plain", ""}
+        if file.content_type and file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported file type: '{file.content_type}'. Upload a CSV file.",
+            )
+
         content_bytes = await file.read()
         content = content_bytes.decode("utf-8")
 
         # Validate file size (max MB from config)
-        from app.config import settings
-        from app.utils.file_utils import validate_file_size
-
         if not validate_file_size(
             size=len(content_bytes),
             max_mb=settings.MAX_FILE_SIZE_MB,
@@ -114,8 +118,6 @@ async def upload(
                 status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"File exceeds maximum size of {settings.MAX_FILE_SIZE_MB} MB",
             )
-
-        from app.utils.csv_parser import parse_csv_to_orders
 
         try:
             orders_data = parse_csv_to_orders(content)

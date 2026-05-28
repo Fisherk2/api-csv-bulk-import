@@ -15,7 +15,6 @@ from typing import Any
 from uuid import UUID
 
 from app.core.entities.order import Order, OrderItem
-from app.core.repositories.customer_repository import ICustomerRepository
 from app.core.repositories.order_repository import IOrderRepository
 from app.core.repositories.product_repository import IProductRepository
 from app.schemas.order import (
@@ -37,11 +36,9 @@ class OrderService:
 
     def __init__(
         self,
-        customer_repo: ICustomerRepository,
         product_repo: IProductRepository,
         order_repo: IOrderRepository,
     ) -> None:
-        self._customer_repo = customer_repo
         self._product_repo = product_repo
         self._order_repo = order_repo
 
