@@ -2,12 +2,19 @@
 
 Provides auth_token and seeded_data fixtures used across all
 e2e test files (ASGI transport, SQLite in-memory).
+
+Also provides docker_stack and docker_client fixtures for Docker
+smoke tests (auto-start/stop lifecycle).
 """
 
 from __future__ import annotations
 
+import random
+import socket
 import subprocess
 import time
+from collections.abc import AsyncGenerator, Generator
+from urllib.parse import urlparse
 
 import httpx
 import pytest
@@ -18,25 +25,20 @@ import pytest
 # marked with @pytest.mark.docker.
 
 
-def _container_running() -> bool:
-    """Check if the API container is already running."""
-    result = subprocess.run(
-        ["docker-compose", "ps", "--services", "--filter", "status=running"],
-        capture_output=True,
-        text=True,
-        timeout=10,
-    )
-    return "api" in result.stdout
-
-
 def _wait_for_api(base_url: str, timeout: int = 60) -> bool:
-    """Poll the health endpoint until the API responds or timeout."""
-    import socket
+    """Poll the health endpoint until the API responds or timeout.
+
+    Parses host and port from base_url for the socket pre-check,
+    then hits the HTTP endpoint to confirm the API is fully ready.
+    """
+    parsed = urlparse(base_url)
+    host = parsed.hostname or "localhost"
+    port = parsed.port or 8000
 
     for _ in range(timeout):
-        # First check if the port is open
+        # Fast check: is the port open?
         try:
-            sock = socket.create_connection(("localhost", 8000), timeout=2)
+            sock = socket.create_connection((host, port), timeout=2)
             sock.close()
         except (ConnectionRefusedError, OSError):
             time.sleep(1)
@@ -44,7 +46,7 @@ def _wait_for_api(base_url: str, timeout: int = 60) -> bool:
 
         # Port is open, try HTTP
         try:
-            resp = httpx.get(f"{base_url}/", timeout=5)
+            resp = httpx.get(f"{base_url}/", timeout=2)
             if resp.status_code == 200:
                 return True
         except httpx.HTTPError:
@@ -54,7 +56,7 @@ def _wait_for_api(base_url: str, timeout: int = 60) -> bool:
 
 
 @pytest.fixture(scope="session")
-def docker_stack(request):
+def docker_stack(request: pytest.FixtureRequest) -> Generator[str, None, None]:
     """Start and stop the Docker Compose stack for smoke tests.
 
     Lifecycle:
@@ -135,7 +137,7 @@ def docker_stack(request):
 
 
 @pytest.fixture
-async def docker_client(docker_stack):
+async def docker_client(docker_stack: str) -> AsyncGenerator[httpx.AsyncClient, None]:
     """Provide an httpx client connected to the Docker stack.
 
     Requires the docker_stack fixture to be active.
@@ -143,6 +145,26 @@ async def docker_client(docker_stack):
     client = httpx.AsyncClient(base_url=docker_stack, timeout=30.0)
     yield client
     await client.aclose()
+
+
+@pytest.fixture
+async def smoke_token(docker_client: httpx.AsyncClient) -> str:
+    """Obtain a JWT token for smoke tests.
+
+    Authenticates against the live Docker stack and returns the token.
+    Skips all dependent tests if authentication fails (no test user).
+    """
+    test_email = f"smoke-{random.randint(1000, 9999)}@test.com"
+    test_password = "test123456"
+
+    login_resp = await docker_client.post(
+        "/token",
+        data={"username": test_email, "password": test_password},
+    )
+    if login_resp.status_code != 200:
+        pytest.skip("Cannot authenticate — no test user in DB")
+
+    return login_resp.json()["access_token"]
 
 
 # ── ASGI fixtures (for non-Docker e2e tests) ────────────────────

@@ -5,6 +5,9 @@ The docker_stack fixture (from conftest.py) automatically:
   2. Waits for the API to be healthy
   3. Tears down containers after all tests finish
 
+The smoke_token fixture authenticates against the live stack and
+returns a JWT token for tests that need it.
+
 Usage:
     pytest tests/e2e/test_smoke_docker.py -v -m docker
 
@@ -50,21 +53,9 @@ async def test_smoke_docker_export_requires_auth(docker_client):
     assert resp.status_code == 401
 
 
-async def test_smoke_docker_upload_validates_batch(docker_client):
+async def test_smoke_docker_upload_validates_batch(docker_client, smoke_token):
     """Upload with valid structure but non-existent IDs returns 422 (not 500)."""
-    # Register a test user to get a token
-    test_email = f"smoke-{uuid4().hex[:8]}@test.com"
-    test_password = "test123456"
-
-    login_resp = await docker_client.post(
-        "/token",
-        data={"username": test_email, "password": test_password},
-    )
-    if login_resp.status_code != 200:
-        pytest.skip("Cannot authenticate — no test user in DB")
-
-    token = login_resp.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {smoke_token}"}
 
     upload_payload = {
         "orders": [
@@ -87,20 +78,9 @@ async def test_smoke_docker_upload_validates_batch(docker_client):
     assert upload_data["failed"] >= 1
 
 
-async def test_smoke_docker_export_returns_json(docker_client):
+async def test_smoke_docker_export_returns_json(docker_client, smoke_token):
     """Export returns valid JSON array (even if empty)."""
-    test_email = f"smoke-{uuid4().hex[:8]}@test.com"
-    test_password = "test123456"
-
-    login_resp = await docker_client.post(
-        "/token",
-        data={"username": test_email, "password": test_password},
-    )
-    if login_resp.status_code != 200:
-        pytest.skip("Cannot authenticate — no test user in DB")
-
-    token = login_resp.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {smoke_token}"}
 
     export_resp = await docker_client.get("/export?format=json", headers=headers)
     assert export_resp.status_code == 200

@@ -40,7 +40,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 | **P5: Export Slice** | 1 day | 2026-06-02 | 2026-06-02 | ✅ Completed | `/export` with JSON/CSV | ✅ Full flow works |
 | **P6: Testing** | 2 days | 2026-06-03 | 2026-05-27 | ✅ Completed | Formal review + E2E + coverage gap closure | ✅ 261 tests, 96.98% coverage |
 | **P7: Deployment** | 1 day | 2026-06-05 | 2026-06-05 | ✅ Completed | Docker prod + CI/CD + Rate Limiting | ✅ 267 tests, 96.73% coverage |
-| **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ✅ Completed | Docs, API reference, retrospective | ✅ All docs done |
+| **P8: Closure** | 1 day | 2026-06-06 | 2026-06-06 | ✅ Completed | Docs, API reference, retrospective | ✅ 272 tests, 96.73% coverage |
 
 ---
 
@@ -374,7 +374,7 @@ For project context, technical stack, architecture and conventions, refer to [AG
 - [x] All open questions from SPEC.md resolved or documented as future work
 
 **P8 Closing Notes:**
-- 267 tests passing, coverage 96.73%, ruff zero issues, mypy zero issues.
+- 272 tests collected (270 passed, 2 skipped Docker smoke), coverage 96.73%, ruff zero issues, mypy pre-existing test annotation warnings only.
 - New files: `README.md` (full rewrite), `CONTRIBUTING.md` (new), `docs/RETROSPECTIVE.md` (new), `docs/API_REFERENCE.md` (new).
 - Updated files: `AGENTS.md` (status + new doc links), `WORKFLOW.md` (P8 completed).
 - P8 completed on 2026-06-06. All phases (P1–P8) complete. Project is v1.0.0 Released.

@@ -200,7 +200,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture guide
 | Source files | 53 |
 | Test files | 40 |
 | Source LOC | 2,622 |
-| Test LOC | 4,927 |
+| Test LOC | 5,072 |
 | Test coverage | 96.73% |
 | Lint issues (ruff) | 0 |
 | Type errors (mypy) | 0 |
